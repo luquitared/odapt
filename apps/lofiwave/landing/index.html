@@ -95,7 +95,7 @@ footer a { color: var(--muted); }
 <div class="wrap">
   <header>
     <a class="brand" href="./"><img src="logo.png" alt="">lofiwave</a>
-    <a class="gh" href="https://github.com/synjuku/lofiwave" data-event="github_click">GitHub ↗</a>
+    <a class="gh" href="https://github.com/luquitared/lofiwave" data-event="github_click">GitHub ↗</a>
   </header>
 
   <main>
@@ -106,13 +106,13 @@ footer a { color: var(--muted); }
         <div class="install">
           <button class="copy" type="button">copy</button>
 <pre><span class="c"># needs bun; tmux for interactive runs</span>
-git clone https://github.com/synjuku/lofiwave.git
+git clone https://github.com/luquitared/lofiwave.git
 cd lofiwave
 bun start</pre>
         </div>
         <div class="cta">
-          <a class="btn primary" href="https://github.com/synjuku/lofiwave" data-event="github_click">View on GitHub</a>
-          <a class="btn secondary" href="https://github.com/synjuku/lofiwave#readme" data-event="readme_click">Read the docs</a>
+          <a class="btn primary" href="https://github.com/luquitared/lofiwave" data-event="github_click">View on GitHub</a>
+          <a class="btn secondary" href="https://github.com/luquitared/lofiwave#readme" data-event="readme_click">Read the docs</a>
         </div>
       </div>
       <img class="hero-logo" src="logo.png" alt="lofiwave logo">
@@ -140,7 +140,7 @@ bun start</pre>
 
   <footer>
     <span>lofiwave · MIT licensed</span>
-    <a href="https://github.com/synjuku/lofiwave" data-event="github_click">github.com/synjuku/lofiwave</a>
+    <a href="https://github.com/luquitared/lofiwave" data-event="github_click">github.com/luquitared/lofiwave</a>
   </footer>
 </div>
 <script>
@@ -158,7 +158,7 @@ event("view", { ref: document.referrer || null });
 document.querySelectorAll("[data-event]").forEach((a) => a.addEventListener("click", () => event(a.dataset.event)));
 const copy = document.querySelector(".copy");
 copy.addEventListener("click", async () => {
-  const text = "git clone https://github.com/synjuku/lofiwave.git\ncd lofiwave\nbun start";
+  const text = "git clone https://github.com/luquitared/lofiwave.git\ncd lofiwave\nbun start";
   try { await navigator.clipboard.writeText(text); copy.textContent = "copied"; } catch { copy.textContent = "select it"; }
   setTimeout(() => (copy.textContent = "copy"), 1600);
   event("install_copied");
