@@ -5,6 +5,24 @@ Open work, newest first within each status. One heading per issue; close it by m
 
 ## Open
 
+### #17 No public example of a paid standalone app
+*Opened 2026-10-08 · the only live one (Duo Swap) is a private app*
+
+The repo has the scaffold (`bun run new-app` from `apps/_template`) and the checklist
+(`docs/new-app.md`), but nothing finished to read or run: a fixed-price app that takes an order,
+pays through the platform's Checkout and delivers. Someone building their first paid app has to
+trust the template. It also leaves the control plane's standalone path covered only by
+hand-built objects in `test/apps.test.ts`.
+
+Make a small one in `apps/<id>/` with `new-app`:
+- Cheap to run, and no third-party footage, brands or likenesses, so it's safe to feature.
+- One product, one provider call through `odapt.provider`, so the proxy and ledger show up in
+  `bun run report`.
+- Runs end to end with `APP_FAKE_PAY=1` and a mock of the provider, so a fresh clone can try the
+  whole flow for $0.
+- Linked from the README ("Standalone apps") and from odapt.ai's Get started.
+- Once it exists, point `test/apps.test.ts` back at a real `app.json`.
+
 ### #16 HTML panels: what the first Lingo canvas run left open
 *Opened 2026-10-07 · first game with `"ui": {"html": true}` (local session `ba6f1465b016`)*
 
