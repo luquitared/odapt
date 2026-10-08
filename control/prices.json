@@ -1,0 +1,6 @@
+{
+  "_": "Replicate doesn't return cost, so the proxy charges these up front (USD, checked 2026-09-19 against tools/rep.md). A model missing here is refused.",
+  "minimax/image-01": { "per": "image", "usd": 0.01, "count_input": "number_of_images" },
+  "minimax/h3": { "per": "second", "usd": 0.08, "usd_2k": 0.13, "seconds_input": "duration", "default_seconds": 6 },
+  "minimax/speech-2.8-turbo": { "per": "1k_chars", "usd": 0.06, "text_input": "text", "min_usd": 0.005 }
+}

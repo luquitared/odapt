@@ -1,0 +1,14 @@
+{
+  "name": "App Store Ad",
+  "description": "Paste an App Store or Google Play link. Get a vertical video ad built from the app's own screenshots and what its users say.",
+  "icon": "◉",
+  "modes": ["editor", "job"],
+  "tools": [],
+  "requires": ["ffmpeg", "yt-dlp", "rep"],
+  "harness": "deepseek-flash",
+  "model": "sonnet",
+  "inputs": [
+    { "id": "url", "label": "App Store or Google Play link", "type": "url", "required": true, "placeholder": "https://apps.apple.com/us/app/…/id123456789" },
+    { "id": "audience", "label": "Who is the ad for? (optional)", "type": "text", "placeholder": "frequent flyers, new parents, indie devs…" }
+  ]
+}

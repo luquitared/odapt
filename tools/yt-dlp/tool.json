@@ -1,0 +1,11 @@
+{
+  "about": "Download video from YouTube and other sites. YouTube blocks datacenter IPs and its terms forbid downloading, so it never runs hosted.",
+  "version": "2026.08.19",
+  "commands": ["yt-dlp"],
+  "hosted": false,
+  "check": ["yt-dlp", "--version"],
+  "platforms": {
+    "darwin-arm64": [{ "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_macos", "sha256": "0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202", "command": "yt-dlp" }],
+    "linux-x64": [{ "url": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp_linux", "sha256": "58162f9bfdc27458ea47bfcb311cf47028f17d8154a8bf7d689861d46399230a", "command": "yt-dlp" }]
+  }
+}

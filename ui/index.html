@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odapt Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f1ea; --surface: #fffdf8; --ink: #1d1b16; --muted: #7a7466; --line: #e2dccd;
+  --accent: #e8502a; --accent-ink: #fff; --ok: #2f7d4f; --warn: #b7791f; --bad: #b3261e;
+  --radius: 10px; --serif: "Fraunces", Georgia, serif; --sans: "Inter", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #15140f; --surface: #1e1c16; --ink: #efe9da; --muted: #958e7c; --line: #333026; --accent: #ff6b42; --ok: #6cc08b; --warn: #e0a84a; --bad: #f2867d;
+} }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 999px; cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: default; }
+input, select, textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; }
+textarea { resize: vertical; min-height: 64px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 5px; }
+.pill { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.working { color: var(--warn); border-color: currentColor; } .pill.working::before { content: "● "; animation: blink 1.2s infinite; }
+.pill.waiting, .pill.ready { color: var(--accent); border-color: currentColor; }
+.pill.done, .pill.approved { color: var(--ok); border-color: currentColor; }
+.pill.failed { color: var(--bad); border-color: currentColor; }
+@keyframes blink { 50% { opacity: .25; } }
+
+/* home */
+.wrap { max-width: 1040px; margin: 0 auto; padding: 40px 20px 80px; }
+.brand { font: 600 22px var(--serif); text-decoration: none; }
+.brand i { color: var(--accent); font-style: normal; }
+.hero { margin: 36px 0 28px; } .hero h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.08; max-width: 16ch; } .hero p { color: var(--muted); max-width: 52ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; text-decoration: none; display: block; transition: transform .12s, border-color .12s; }
+a.card:hover { border-color: var(--ink); transform: translateY(-2px); }
+.card .icon { font-size: 22px; color: var(--accent); } .card h3 { margin: 8px 0 4px; font-size: 19px; } .card p { margin: 0; color: var(--muted); font-size: 14px; }
+.section-title { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 40px 0 12px; }
+.rows { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.row { display: flex; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid var(--line); text-decoration: none; } .row:first-child { border-top: 0; } .row:hover { background: var(--bg); }
+.row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .row small { color: var(--muted); }
+.formcard { max-width: 560px; } .field { margin-bottom: 16px; } .modes { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+.check { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; } .check input { width: auto; }
+
+/* session */
+.session { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+.top { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.top h2 { font-size: 19px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cost { font: 12px var(--mono); color: var(--muted); }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 380px; min-height: 0; }
+.stage { overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.rail { border-left: 1px solid var(--line); display: grid; grid-template-rows: 1fr auto; min-height: 0; background: var(--surface); }
+.feed { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.empty { color: var(--muted); text-align: center; margin: auto; max-width: 30ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); scroll-margin-top: 16px; }
+.panel.focus { border-color: var(--accent); }
+.panel > header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); } .panel > header h3 { flex: 1; font-size: 18px; }
+.panel .body { padding: 18px; } .panel > footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.md p { margin: 0 0 10px; } .md p:last-child { margin: 0; } .md ul { margin: 0 0 10px; padding-left: 20px; } .md code { font: 13px var(--mono); background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+.md h1, .md h2, .md h3 { font-size: 17px; margin: 0 0 8px; }
+.scene { display: grid; grid-template-columns: 74px 1fr; gap: 14px; padding: 14px 0; border-top: 1px dashed var(--line); } .scene:first-of-type { border-top: 0; }
+.scene .tag { font: 11px var(--mono); color: var(--muted); text-transform: uppercase; } .scene .tag b { display: block; font: 600 22px var(--serif); color: var(--ink); }
+.scene textarea { min-height: 0; margin-bottom: 6px; } .scene .narr { font-family: var(--serif); font-size: 17px; border-color: transparent; background: transparent; padding-left: 0; } .scene .vis { font-size: 13px; color: var(--muted); }
+.style-bible { font-size: 13px; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 12px; margin-bottom: 8px; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.tile { margin: 0; } .tile .media { aspect-ratio: 9/16; max-height: 300px; width: 100%; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; color: var(--muted); font: 11px var(--mono); }
+.tile .media.pending { background: linear-gradient(100deg, var(--bg) 40%, var(--line) 50%, var(--bg) 60%); background-size: 200% 100%; animation: shimmer 1.6s infinite linear; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.tile img, .tile video { width: 100%; height: 100%; object-fit: cover; display: block; } .tile figcaption { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.choices { display: grid; gap: 8px; } .choice { display: grid; grid-template-columns: 22px 1fr; gap: 12px; text-align: left; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); cursor: pointer; }
+.choice:hover { border-color: var(--ink); } .choice.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--bg)); } .choice:disabled { cursor: default; opacity: .75; }
+.choice .tick { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); margin-top: 2px; } .choice.on .tick { border-color: var(--accent); background: radial-gradient(var(--accent) 45%, transparent 50%); }
+.choice b { font-weight: 600; } .choice em { font: 11px var(--mono); color: var(--muted); font-style: normal; margin-left: 8px; } .choice small { display: block; color: var(--muted); font-size: 13px; margin-top: 3px; }
+.appcard { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; } .appicon { width: 76px; height: 76px; border-radius: 17px; border: 1px solid var(--line); } .appcard p { margin: 2px 0 0; } .rating { font-weight: 600; }
+.shots { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; } .shots img { height: 250px; border-radius: 10px; border: 1px solid var(--line); flex: none; }
+.player { width: 100%; max-height: 70vh; border-radius: 8px; background: #000; }
+.panel.html > .body { padding: 0; } .canvas { display: block; width: 100%; height: 320px; border: 0; border-radius: 0 0 var(--radius) var(--radius); background: transparent; transition: height .15s; }
+pre.json { font: 12px var(--mono); overflow: auto; margin: 0; white-space: pre-wrap; }
+.ev { font-size: 13px; color: var(--muted); display: flex; gap: 8px; } .ev::before { content: "·"; } .ev.error { color: var(--bad); }
+.msg { padding: 9px 12px; border-radius: 12px; max-width: 92%; font-size: 14px; } .msg.agent { background: var(--bg); align-self: flex-start; border-bottom-left-radius: 3px; } .msg.user { background: var(--ink); color: var(--bg); align-self: flex-end; border-bottom-right-radius: 3px; }
+.askcard { border: 1px solid var(--accent); border-radius: var(--radius); padding: 12px; } .askcard p { margin: 0 0 10px; font-weight: 500; } .askcard .opts { display: flex; gap: 6px; flex-wrap: wrap; } .askcard.answered { border-color: var(--line); color: var(--muted); }
+.msg.voice.user { background: color-mix(in srgb, var(--ink) 82%, var(--accent)); } .msg.voice.agent { font-style: italic; } .msg.voice::before { content: "🎙 "; font-style: normal; }
+.btn.talk.live { background: var(--ok); border-color: var(--ok); color: #fff; } .btn.talk.live::before { content: "● "; animation: blink 1.2s infinite; }
+.composer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); } .composer textarea { min-height: 42px; height: 42px; }
+.bar { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+.acct { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.acct b { color: var(--ink); font: 600 13px var(--mono); } .acct .low { color: var(--bad); } .acct .code { font: 600 15px var(--mono); color: var(--ink); letter-spacing: .08em; }
+.acct select { width: auto; padding: 6px 10px; border-radius: 999px; } .acct .btn { padding: 6px 12px; font-size: 13px; } .btn.quiet { border-color: transparent; background: none; color: var(--muted); }
+.formerr { color: var(--bad); font-size: 14px; margin: 14px 0 0; }
+.toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 9; }
+@media (max-width: 860px) { .session { grid-template-columns: minmax(0, 1fr); } .top { flex-wrap: wrap; row-gap: 8px; padding: 10px 16px; } .top h2 { flex-basis: calc(100% - 40px); } .cols { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 46vh; } .rail { border-left: 0; border-top: 1px solid var(--line); } .stage { padding: 16px; } }
+</style>
+</head>
+<body>
+<div id="app" style="height:100%"></div>
+<script>
+const $ = (sel, el = document) => el.querySelector(sel);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const api = (path, opts) => fetch(path, opts && { ...opts, headers: { "content-type": "application/json" }, body: JSON.stringify(opts.body) }).then((r) => r.json());
+const ago = (t) => { const s = (Date.now() - t) / 1000; return s < 90 ? "just now" : s < 5400 ? `${Math.round(s / 60)}m ago` : s < 129600 ? `${Math.round(s / 3600)}h ago` : `${Math.round(s / 86400)}d ago`; };
+const STATUS_LABEL = { created: "starting", working: "working", waiting: "your move", idle: "paused", done: "done", failed: "failed" };
+
+function md(src) {
+  const inline = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/(^|\W)\*([^*\n]+)\*/g, "$1<i>$2</i>");
+  const out = []; let list = null;
+  for (const line of String(src ?? "").split("\n")) {
+    const li = line.match(/^\s*[-*]\s+(.*)/), h = line.match(/^(#{1,3})\s+(.*)/);
+    if (li) { (list ??= []).push(`<li>${inline(li[1])}</li>`); continue; }
+    if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; }
+    if (h) out.push(`<h3>${inline(h[2])}</h3>`); else if (line.trim()) out.push(`<p>${inline(line)}</p>`);
+  }
+  if (list) out.push(`<ul>${list.join("")}</ul>`);
+  return out.join("");
+}
+
+// ------------------------------------------------------------ panel renderers
+// One function per `kind`. To teach the UI a new kind, add an entry here.
+const assetOf = (data, slot) => data?.assets?.[slot];
+function media(a, cls = "") {
+  if (!a?.url) return "";
+  if ((a.mime ?? "").startsWith("video") || /\.(mp4|webm|mov)$/i.test(a.url)) return `<video class="${cls}" src="${esc(a.url)}" controls playsinline preload="metadata"></video>`;
+  if ((a.mime ?? "").startsWith("audio")) return `<audio src="${esc(a.url)}" controls></audio>`;
+  return `<img class="${cls}" src="${esc(a.url)}" loading="lazy" alt="">`;
+}
+const RENDERERS = {
+  markdown: (p) => `<div class="md">${md(p.data?.markdown ?? p.data?.text ?? "")}</div>`,
+  form: (p) => (p.data?.fields ?? []).map((f, i) => `<div class="field"><label>${esc(f.label ?? f.id)}</label>${
+    f.type === "select" ? `<select data-edit="fields.${i}.value">${(f.options ?? []).map((o) => `<option ${o === f.value ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`
+    : f.type === "textarea" ? `<textarea data-edit="fields.${i}.value">${esc(f.value)}</textarea>`
+    : `<input data-edit="fields.${i}.value" value="${esc(f.value)}">`}</div>`).join(""),
+  script: (p) => `${p.data?.style ? `<div class="style-bible">${esc(p.data.style)}</div>` : ""}${(p.data?.scenes ?? []).map((s, i) => `
+    <div class="scene"><div class="tag"><b>${i + 1}</b>${esc(s.type ?? "")}</div><div>
+      <textarea class="narr" rows="2" data-edit="scenes.${i}.narration">${esc(s.narration)}</textarea>
+      <textarea class="vis" rows="2" data-edit="scenes.${i}.visual">${esc(s.visual)}</textarea>
+      ${s.motion ? `<div class="vis">↳ ${esc(s.motion)}</div>` : ""}</div></div>`).join("")}`,
+  gallery: (p) => `<div class="gallery">${(p.data?.items ?? Object.keys(p.data?.assets ?? {}).map((id) => ({ id }))).map((it) => {
+    const a = assetOf(p.data, it.id) ?? (it.url ? { url: it.url } : null);
+    return `<figure class="tile"><div class="media ${a ? "" : "pending"}">${a ? media(a) : esc(it.id)}</div><figcaption>${esc(it.caption ?? "")}</figcaption></figure>`; }).join("")}</div>`,
+  video: (p) => { const a = assetOf(p.data, "video") ?? (p.data?.url ? { url: p.data.url, mime: "video/mp4" } : null);
+    return `${a ? media({ ...a, mime: "video/mp4" }, "player") : `<div class="tile"><div class="media pending" style="aspect-ratio:16/9">rendering</div></div>`}${p.data?.caption ? `<p class="vis">${esc(p.data.caption)}</p>` : ""}`; },
+  // choices {"prompt","multiple":false,"items":[{"id","title","detail","meta"}],"selected":["id"]} — picking saves quietly; a panel button submits.
+  choices: (p) => `${p.data?.prompt ? `<p class="vis">${esc(p.data.prompt)}</p>` : ""}<div class="choices" data-multiple="${p.data?.multiple ? 1 : 0}">${(p.data?.items ?? []).map((it) => `
+    <button type="button" class="choice ${(p.data?.selected ?? []).includes(it.id) ? "on" : ""}" data-choice="${esc(it.id)}"><span class="tick"></span><span><b>${esc(it.title)}</b>${it.meta ? `<em>${esc(it.meta)}</em>` : ""}${it.detail ? `<small>${esc(it.detail)}</small>` : ""}</span></button>`).join("")}</div>`,
+  // appcard {"name","developer","genre","rating","ratingCount","price","icon","screenshots":[url]}
+  appcard: (p) => { const d = p.data ?? {}; return `<div class="appcard">${d.icon ? `<img class="appicon" src="${esc(d.icon)}" alt="">` : ""}<div><h3>${esc(d.name)}</h3><p class="vis">${esc([d.developer, d.genre, d.price].filter(Boolean).join(" · "))}</p>${d.rating ? `<p class="rating">${Number(d.rating).toFixed(1)} ★ <span class="vis">${d.ratingCount ? Number(d.ratingCount).toLocaleString() + " ratings" : ""}</span></p>` : ""}</div></div>
+    <div class="shots">${(d.screenshots ?? []).map((u) => `<img src="${esc(u)}" loading="lazy" alt="">`).join("")}</div>`; },
+  json: (p) => `<pre class="json">${esc(JSON.stringify(p.data, null, 2))}</pre>`,
+};
+
+// ------------------------------------------------------------ html panels
+// `html` panels (apps with "ui": {"html": true}; prompts/html-panels.md) are pages the agent writes.
+// Each runs in an iframe with scripts but no same-origin, so it can't reach the session, the API or
+// the account; a CSP blocks the network. It talks to us only through the `snap` bridge below.
+const THEME_KEYS = ["bg", "surface", "ink", "muted", "line", "accent", "ok", "warn", "bad"];
+const BRIDGE = (state, status, theme) => `(() => {
+  let state = ${JSON.stringify(state ?? null).replace(/</g, "\\u003c")}, status = ${JSON.stringify(status)};
+  const fns = [], post = (m) => parent.postMessage(m, "*");
+  window.snap = {
+    get state() { return state; }, get status() { return status; }, theme: ${JSON.stringify(theme)},
+    onState(fn) { fns.push(fn); try { fn(state, status); } catch (e) { console.error(e); } },
+    action(type, payload) { post({ snap: "action", type, payload }); },
+    send(text) { post({ snap: "send", text: String(text) }); },
+    edit(patch) { post({ snap: "edit", patch }); },
+  };
+  addEventListener("message", (e) => {
+    if (e.source !== parent || e.data?.snap !== "state") return;
+    state = e.data.state; status = e.data.status;
+    for (const fn of fns) try { fn(state, status); } catch (err) { console.error(err); }
+  });
+  const size = () => post({ snap: "height", h: Math.ceil(document.documentElement.getBoundingClientRect().height) });
+  addEventListener("load", () => { post({ snap: "ready" }); size(); new ResizeObserver(size).observe(document.documentElement); });
+})();`;
+function canvasDoc(p) {
+  const d = p.data ?? {}, css = getComputedStyle(document.documentElement);
+  const theme = Object.fromEntries(THEME_KEYS.map((k) => [k, css.getPropertyValue(`--${k}`).trim()]));
+  const src = location.origin;
+  const csp = [`default-src 'none'`, `script-src 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com`,
+    `style-src 'unsafe-inline' https://fonts.googleapis.com`, `font-src https://fonts.gstatic.com data:`, `img-src ${src} data: blob:`,
+    `media-src ${src} data: blob:`, `connect-src 'none'`, `form-action 'none'`].join("; ");
+  const head = `<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="viewport" content="width=device-width,initial-scale=1">`
+    + `<style>:root{color-scheme:light dark;${THEME_KEYS.map((k) => `--snap-${k}:${theme[k]}`).join(";")}}</style><script>${BRIDGE(d.state, p.status, theme)}<\/script>`;
+  const html = String(d.html ?? "");
+  if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, (m) => m + head);
+  if (/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, (m) => `${m}<head>${head}</head>`);
+  return `<!doctype html><html><head>${head}</head><body>${html}</body></html>`;
+}
+const panelHead = (p) => `<header><h3>${esc(p.title)}</h3><span class="pill ${p.status}">${p.status}</span></header>`;
+const panelFoot = (p) => p.actions?.length && p.status === "ready" ? `<footer>${p.actions.map((a) => `<button class="btn ${esc(a.style ?? "")}" data-action="${esc(a.id)}">${esc(a.label)}</button>`).join("")}</footer>` : "";
+// The frame survives state changes (they're posted in); only new HTML reloads it.
+function drawCanvas(el, p) {
+  const html = String(p.data?.html ?? "");
+  let frame = el.querySelector("iframe.canvas");
+  if (!frame || frame._html !== html) {
+    el.innerHTML = `${panelHead(p)}<div class="body"></div>${panelFoot(p)}`;
+    frame = document.createElement("iframe");
+    // allow-forms only so a page's submit handler runs; the CSP's form-action 'none' blocks a real submission.
+    frame.className = "canvas"; frame.title = p.title; frame.sandbox = "allow-scripts allow-forms"; frame._html = html;
+    frame.srcdoc = canvasDoc(p);
+    $(".body", el).append(frame);
+    return;
+  }
+  el.querySelector(":scope > header").outerHTML = panelHead(p);
+  el.querySelector(":scope > footer")?.remove();
+  el.insertAdjacentHTML("beforeend", panelFoot(p));
+  frame.contentWindow?.postMessage({ snap: "state", state: p.data?.state ?? null, status: p.status }, "*");
+}
+let onCanvas = null; // set by the open session page
+addEventListener("message", (e) => {
+  if (typeof e.data?.snap !== "string") return;
+  const frame = [...document.querySelectorAll("iframe.canvas")].find((f) => f.contentWindow === e.source);
+  if (frame) onCanvas?.(frame, frame.closest(".panel").dataset.id, e.data);
+});
+
+// ------------------------------------------------------------ account
+// The signed-in account pays for paid calls (src/account.ts). Without a control plane it's absent.
+let acct = null, acctApp = null;
+async function loadAccount() {
+  acct = await api(`/api/account${acctApp ? `?app=${encodeURIComponent(acctApp)}` : ""}`).catch(() => acct);
+  for (const el of document.querySelectorAll(".acct")) el.innerHTML = accountHtml();
+  return acct;
+}
+function accountHtml() {
+  const a = acct;
+  if (!a?.control) return "";
+  if (!a.signedIn && a.signIn) return a.signIn.error ? `<span class="low">${esc(a.signIn.error)}</span> <button class="btn primary" data-acct="sign-in">Sign in</button>`
+    : `<span>Approve <span class="code">${esc(a.signIn.userCode)}</span> in your browser</span> <a class="btn" href="${esc(a.signIn.url)}" target="_blank" rel="noopener">Open sign-in page</a>`;
+  if (!a.signedIn) return `<button class="btn primary" data-acct="sign-in">Sign in</button>`;
+  const bal = a.balanceUsd === undefined ? `<span class="low" title="${esc(a.error ?? "")}">credit unavailable</span>`
+    : `<span class="${a.balanceUsd < a.minBalanceUsd ? "low" : ""}"><b>$${a.balanceUsd.toFixed(2)}</b> credit</span>`;
+  const packs = a.packs.length ? `<select data-acct="buy"><option value="">Add credit…</option>${a.packs.map((p) => `<option value="${esc(p.id)}">${esc(p.label)}</option>`).join("")}</select>` : "";
+  return `${bal} ${packs} <button class="btn quiet" data-acct="sign-out" title="${esc(a.email ?? "")}">Sign out</button>`;
+}
+// A tab opened before the request, so the browser doesn't treat it as a pop-up.
+async function openFrom(path, body) {
+  const w = window.open("", "_blank");
+  const r = await api(path, { method: "POST", body });
+  if (r.url) w.location = r.url; else { w.close(); toast(r.error ?? "That didn't work. Try again."); }
+}
+let signInPoll = null;
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-acct]"); if (!b || b.tagName === "SELECT") return;
+  if (b.dataset.acct === "sign-out") { await api("/api/account/sign-out", { method: "POST", body: {} }); return loadAccount(); }
+  if (b.dataset.acct !== "sign-in") return;
+  b.disabled = true;
+  await openFrom("/api/account/sign-in", { app: acctApp });
+  clearInterval(signInPoll);
+  signInPoll = setInterval(async () => { const a = await loadAccount(); if (a.signedIn || a.signIn?.error || !a.signIn) clearInterval(signInPoll); }, 2000);
+  loadAccount();
+});
+document.addEventListener("change", (e) => {
+  const s = e.target.closest('select[data-acct="buy"]'); if (!s || !s.value) return;
+  const pack = s.value; s.value = "";
+  openFrom("/api/account/buy", { app: acctApp, pack });
+});
+// Credit changes elsewhere (a payment, a run): refresh when the page comes back into view, and now and then.
+addEventListener("focus", () => loadAccount());
+setInterval(() => { if (document.visibilityState === "visible") loadAccount(); }, 20_000);
+
+// ------------------------------------------------------------ pages
+const app = $("#app");
+let source = null;
+
+async function home() {
+  const [templates, sessions] = await Promise.all([api("/api/templates"), api("/api/sessions")]);
+  app.innerHTML = `<div class="wrap"><div class="bar"><a class="brand" href="#/">odapt<i>.</i>studio</a><span class="acct">${accountHtml()}</span></div>
+    <div class="hero"><h1>Pick a template. Let the agent run it.</h1><p>Submit it as a job and come back later, or open it in the editor and steer it live. Same engine either way.</p></div>
+    <div class="grid">${templates.map((t) => `<a class="card" href="#/new/${t.id}"><div class="icon">${esc(t.icon ?? "◆")}</div><h3>${esc(t.name)}</h3><p>${esc(t.description)}</p></a>`).join("")}</div>
+    ${sessions.length ? `<div class="section-title">Sessions</div><div class="rows">${sessions.map((s) => `<a class="row" href="#/s/${s.id}"><span class="t">${esc(s.title)}</span><small>${esc(s.mode)}${s.mock ? " · mock" : ""} · ${ago(s.updatedAt)}</small><span class="pill ${s.status}">${STATUS_LABEL[s.status]}</span></a>`).join("")}</div>` : ""}</div>`;
+}
+
+async function create(id, prefill = new URLSearchParams()) {
+  const [t, harnesses] = await Promise.all([api("/api/templates").then((l) => l.find((x) => x.id === id)), api("/api/harnesses")]);
+  if (!t) return (location.hash = "#/");
+  const own = typeof t.harness === "string" ? t.harness : t.harness?.type ?? "claude";
+  app.innerHTML = `<div class="wrap"><div class="bar"><a class="brand" href="#/">odapt<i>.</i>studio</a><span class="acct">${accountHtml()}</span></div>
+    <div class="hero"><h1>${esc(t.name)}</h1><p>${esc(t.description)}</p></div>
+    <form class="card formcard">${t.inputs.map((i) => `<div class="field"><label>${esc(i.label)}${i.required ? " *" : ""}</label>${
+      i.type === "select" ? `<select name="${i.id}">${i.options.map((o) => `<option ${o === i.default ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`
+      : i.type === "textarea" ? `<textarea name="${i.id}" placeholder="${esc(i.placeholder ?? "")}" ${i.required ? "required" : ""}></textarea>`
+      : `<input name="${i.id}" type="${i.type === "number" ? "number" : i.type === "url" ? "url" : "text"}" placeholder="${esc(i.placeholder ?? "")}" value="${esc(prefill.get(i.id) ?? i.default ?? "")}" ${i.required ? "required" : ""}>`}</div>`).join("")}
+      <div class="field"><label>Engine</label><select name="__harness"><option value="">App default (${esc(own)})</option>${Object.entries(harnesses).map(([k, h]) => `<option value="${esc(k)}">${esc(k)}${h.model ? ` — ${esc(h.model)}` : ""}</option>`).join("")}</select></div>
+      <label class="check"><input type="checkbox" name="__mock" checked> Mock mode — placeholder media, no generation spend</label>
+      <div class="modes">${t.modes.includes("editor") ? `<button class="btn primary" value="editor">Open in editor</button>` : ""}${t.modes.includes("job") ? `<button class="btn" value="job">Submit as job</button>` : ""}</div><p class="formerr" hidden></p></form></div>`;
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target), input = {};
+    for (const [k, v] of fd) if (!k.startsWith("__") && v !== "") input[k] = v;
+    e.submitter.disabled = true;
+    const s = await api("/api/sessions", { method: "POST", body: { templateId: id, mode: e.submitter.value, input, mock: fd.has("__mock"), harness: fd.get("__harness") || undefined } });
+    if (s.id) return (location.hash = `#/s/${s.id}`);
+    const err = $(".formerr"); err.textContent = s.error; err.hidden = false; e.submitter.disabled = false;
+    if (s.account) loadAccount(); // sign in or add credit, at the top of the page
+  });
+}
+
+function sessionPage(id) {
+  let session = null, lastSeq = 0, drawn = {}, lastFocus = null;
+  app.innerHTML = `<div class="session"><div class="top"><a class="brand" href="#/">s<i>.</i></a><h2 id="title">…</h2><span class="cost" id="cost"></span><span class="acct">${accountHtml()}</span><button class="btn talk" id="talk" hidden>Talk</button><span class="pill" id="mode"></span><span class="pill" id="status"></span></div>
+    <div class="cols"><div class="stage" id="stage"><div class="empty">Warming up…</div></div>
+    <div class="rail"><div class="feed" id="feed"></div><form class="composer"><textarea placeholder="Tell it what you want…"></textarea><button class="btn primary">Send</button></form></div></div></div>`;
+  const stage = $("#stage"), feed = $("#feed");
+  const act = (body) => api(`/api/sessions/${id}/actions`, { method: "POST", body });
+
+  function drawChrome() {
+    $("#title").textContent = session.title; document.title = `${session.title} — Odapt Studio`;
+    $("#status").className = `pill ${session.status}`; $("#status").textContent = STATUS_LABEL[session.status];
+    $("#mode").textContent = session.mode + (session.mock ? " · mock" : "");
+    $("#cost").textContent = session.cost.totalUsd ? `$${session.cost.totalUsd.toFixed(2)}` : "";
+  }
+
+  function drawPanels() {
+    const panels = Object.values(session.panels).sort((a, b) => a.order - b.order);
+    if (panels.length) $(".empty", stage)?.remove();
+    for (const el of [...stage.querySelectorAll(".panel")]) if (!session.panels[el.dataset.id]) { el.remove(); delete drawn[el.dataset.id]; }
+    for (const p of panels) {
+      let el = stage.querySelector(`.panel[data-id="${CSS.escape(p.id)}"]`);
+      if (!el) { el = document.createElement("section"); el.className = "panel"; el.dataset.id = p.id; stage.append(el); }
+      el.classList.toggle("focus", session.focus === p.id && p.status === "ready");
+      const stamp = `${p.updatedAt}:${p.status}`;
+      if (drawn[p.id] === stamp || el.contains(document.activeElement) && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) continue;
+      drawn[p.id] = stamp;
+      el.classList.toggle("html", p.kind === "html");
+      if (p.kind === "html") { drawCanvas(el, p); continue; }
+      const locked = p.status !== "ready";
+      el.innerHTML = `${panelHead(p)}<div class="body">${(RENDERERS[p.kind] ?? RENDERERS.json)(p)}</div>${panelFoot(p)}`;
+      for (const f of el.querySelectorAll("[data-edit], [data-choice]")) f.disabled = locked;
+    }
+    if (session.focus && session.focus !== lastFocus) { lastFocus = session.focus; stage.querySelector(`.panel[data-id="${CSS.escape(session.focus)}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  }
+
+  function feedItem(e) {
+    const b = e.body; let html = "";
+    if (b.type === "progress") html = `<div class="ev ${b.kind === "error" ? "error" : ""}">${esc(b.text)}</div>`;
+    else if (b.type === "message") html = `<div class="msg agent md">${md(b.text)}</div>`;
+    else if (b.type === "done") html = `<div class="msg agent md"><b>Done.</b> ${md(b.summary)}</div>`;
+    else if (b.type === "ask") html = `<div class="askcard" data-ask="${esc(b.ask.id)}"></div>`;
+    else if (b.type === "toast") toast(b.text);
+    else if (b.type === "voice") html = `<div class="msg voice ${b.who === "user" ? "user" : "agent"}">${esc(b.text)}</div>`;
+    else if (b.type === "action") {
+      const a = b.action, label = session?.panels[a.panel]?.actions?.find((x) => x.id === a.type)?.label;
+      if (a.type === "message") html = `<div class="msg user">${esc(a.payload)}</div>`;
+      // A voice request is already in the captions.
+      else if (a.type !== "answer" && a.type !== "voice") html = `<div class="msg user">${esc(label ?? a.type)}</div>`;
+    }
+    if (!html) return;
+    const pinned = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+    feed.insertAdjacentHTML("beforeend", html);
+    if (pinned) feed.scrollTop = feed.scrollHeight;
+  }
+
+  function drawAsks() {
+    for (const el of feed.querySelectorAll("[data-ask]")) {
+      const ask = session.asks[el.dataset.ask]; if (!ask) continue;
+      const answered = ask.answer !== null;
+      if (el.dataset.state === String(answered)) continue;
+      el.dataset.state = String(answered); el.classList.toggle("answered", answered);
+      const shown = answered ? (ask.options.find((o) => o.id === ask.answer)?.label ?? ask.answer) : "";
+      el.innerHTML = `<p>${esc(ask.text)}</p>` + (answered ? `<div>→ ${esc(shown)}</div>`
+        : ask.kind === "text" ? `<div class="opts"><input placeholder="Type your answer"><button class="btn primary" data-answer>Send</button></div>`
+        : `<div class="opts">${(ask.options.length ? ask.options : [{ id: "yes", label: "Yes" }, { id: "no", label: "No" }]).map((o) => `<button class="btn" data-answer="${esc(o.id)}">${esc(o.label)}</button>`).join("")}</div>`);
+    }
+  }
+
+  const draw = () => { drawChrome(); drawPanels(); drawAsks(); };
+
+  // What an html panel may do: wake the agent (action, send) at most every 300ms, or save into its state.
+  const RESERVED = new Set(["message", "answer", "voice", "edit"]), lastWake = {};
+  onCanvas = (frame, panel, m) => {
+    const p = session?.panels[panel]; if (!p) return;
+    if (m.snap === "height") frame.style.height = `${Math.min(Math.max(Number(m.h) || 0, 80), 6000)}px`;
+    else if (m.snap === "ready") frame.contentWindow.postMessage({ snap: "state", state: p.data?.state ?? null, status: p.status }, "*");
+    else if (m.snap === "edit" && m.patch && typeof m.patch === "object" && !Array.isArray(m.patch)) act({ type: "edit", panel, payload: { state: { ...(p.data?.state ?? {}), ...m.patch } } });
+    else if (m.snap === "action" || m.snap === "send") {
+      if (Date.now() - (lastWake[panel] ?? 0) < 300) return;
+      lastWake[panel] = Date.now();
+      if (m.snap === "send" && typeof m.text === "string" && m.text.trim()) act({ type: "message", payload: m.text.trim().slice(0, 2000) });
+      else if (m.snap === "action" && /^[a-z][a-z0-9_-]{0,39}$/i.test(m.type) && !RESERVED.has(m.type) && JSON.stringify(m.payload ?? null).length < 20000) act({ type: m.type, panel, payload: m.payload });
+    }
+  };
+  const take = (e) => { if (e.seq <= lastSeq) return; lastSeq = e.seq; feedItem(e); };
+
+  // Voice: apps whose template.json has `voice` get a Talk button (src/voice.ts).
+  const showTalk = (templateId) => api("/api/templates").then((ts) => { $("#talk").hidden = !ts.find((t) => t.id === templateId)?.voice; });
+  $("#talk").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    if (call) return call.end();
+    b.disabled = true; b.textContent = "Connecting…";
+    try {
+      call = await startCall(id, (state) => {
+        b.disabled = state === "ending"; b.classList.toggle("live", state === "live");
+        b.textContent = state === "live" ? "End call" : state === "ending" ? "Ending…" : "Talk";
+        if (state === "ended") call = null;
+      });
+    } catch (err) { toast(err.message); b.disabled = false; b.textContent = "Talk"; call = null; }
+  });
+
+  source?.close();
+  source = new EventSource(`/api/sessions/${id}/events`);
+  source.addEventListener("snapshot", (m) => { const d = JSON.parse(m.data); session = d.session; d.events.forEach(take); draw(); if ($("#talk").dataset.app !== session.templateId) { $("#talk").dataset.app = session.templateId; showTalk(session.templateId); } if (acctApp !== session.templateId) { acctApp = session.templateId; loadAccount(); } });
+  source.addEventListener("log", (m) => { const d = JSON.parse(m.data); session = d.session; take(d.event); draw(); });
+
+  stage.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-action]"); if (!b) return;
+    const panel = b.closest(".panel").dataset.id;
+    b.closest("footer").querySelectorAll("button").forEach((x) => (x.disabled = true));
+    act({ type: b.dataset.action, panel });
+  });
+  stage.addEventListener("click", (e) => {
+    const c = e.target.closest("[data-choice]"); if (!c || c.disabled) return;
+    const panel = c.closest(".panel").dataset.id, multiple = c.closest(".choices").dataset.multiple === "1";
+    const cur = new Set(session.panels[panel].data.selected ?? []);
+    if (multiple) cur.has(c.dataset.choice) ? cur.delete(c.dataset.choice) : cur.add(c.dataset.choice); else { cur.clear(); cur.add(c.dataset.choice); }
+    act({ type: "edit", panel, payload: { selected: [...cur] } });
+  });
+  // Edits save quietly (they don't wake the agent); it reads the panel back when you press a button.
+  stage.addEventListener("change", (e) => {
+    const f = e.target.closest("[data-edit]"); if (!f) return;
+    const panel = f.closest(".panel").dataset.id, [root, idx, key] = f.dataset.edit.split(".");
+    const list = structuredClone(session.panels[panel].data[root]); list[idx][key] = f.value;
+    act({ type: "edit", panel, payload: { [root]: list } });
+  });
+  feed.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-answer]"); if (!b) return;
+    const card = b.closest("[data-ask]"), value = b.dataset.answer || $("input", card)?.value.trim(); if (!value) return;
+    act({ type: "answer", ask: card.dataset.ask, payload: value });
+  });
+  const composer = $(".composer"), box = $("textarea", composer);
+  const sendMsg = () => { const text = box.value.trim(); if (!text) return; box.value = ""; act({ type: "message", payload: text }); };
+  composer.addEventListener("submit", (e) => { e.preventDefault(); sendMsg(); });
+  box.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
+}
+
+// ------------------------------------------------------------ voice
+// WebRTC straight to GPT-Live for the audio; the server creates the session from our offer and runs
+// the conversation over its own connection. The page may only hang up (see BROWSER_EVENTS).
+let call = null;
+async function startCall(sessionId, onState) {
+  const peer = new RTCPeerConnection(), out = new Audio();
+  out.autoplay = true;
+  peer.addEventListener("track", (e) => { out.srcObject = new MediaStream([e.track]); out.play().catch(() => toast("Allow audio playback to hear the voice.")); });
+  const mic = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => { throw new Error("Allow the microphone to talk."); });
+  for (const t of mic.getAudioTracks()) peer.addTrack(t, mic);
+  const events = peer.createDataChannel("oai-events");
+  let ended = false, closing = null;
+  const cleanup = () => { if (ended) return; ended = true; clearTimeout(closing); mic.getTracks().forEach((t) => t.stop()); events.close(); peer.close(); out.srcObject = null; onState("ended"); };
+  events.addEventListener("message", ({ data }) => {
+    const ev = JSON.parse(data);
+    if (ev.type === "session.started") onState("live");
+    else if (ev.type === "session.closed") cleanup();
+    else if (ev.type === "error") toast(ev.error?.message ?? "Voice error");
+  });
+  events.addEventListener("close", cleanup);
+  try {
+    await peer.setLocalDescription(await peer.createOffer());
+    if (peer.iceGatheringState !== "complete") await new Promise((ok) => {
+      const done = () => { if (peer.iceGatheringState === "complete") { peer.removeEventListener("icegatheringstatechange", done); ok(); } };
+      peer.addEventListener("icegatheringstatechange", done); setTimeout(ok, 5000);
+    });
+    const r = await fetch(`/api/sessions/${sessionId}/voice`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sdp: peer.localDescription.sdp }) });
+    const res = await r.json();
+    if (!r.ok) throw new Error(res.error ?? "Couldn't start the call.");
+    await peer.setRemoteDescription({ type: "answer", sdp: res.transport.sdp });
+  } catch (err) { cleanup(); throw err; }
+  return {
+    end() {
+      if (ended) return;
+      onState("ending");
+      if (events.readyState === "open") events.send(JSON.stringify({ type: "session.close" }));
+      closing = setTimeout(cleanup, 10_000); // session.closed normally arrives first
+    },
+  };
+}
+
+function toast(text) { const el = document.createElement("div"); el.className = "toast"; el.textContent = text; document.body.append(el); setTimeout(() => el.remove(), 3500); }
+
+function route() {
+  source?.close(); source = null; call?.end();
+  const [path, query] = location.hash.split("?");
+  const [, page, arg] = path.split("/");
+  if (page !== "s") { acctApp = page === "new" ? arg : null; loadAccount(); }
+  if (page === "new") return create(arg, new URLSearchParams(query)); // ?<input>=<value> prefills the form
+  if (page === "s") return sessionPage(arg);
+  document.title = "Odapt Studio"; home();
+}
+addEventListener("hashchange", route); route();
+</script>
+</body>
+</html>

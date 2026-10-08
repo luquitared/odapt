@@ -1,0 +1,5 @@
+{
+  "claude": { "type": "claude" },
+  "codex": { "type": "codex" },
+  "deepseek-flash": { "type": "codex", "provider": "openrouter", "model": "deepseek/deepseek-v4.1-flash" }
+}

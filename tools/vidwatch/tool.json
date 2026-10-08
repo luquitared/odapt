@@ -1,0 +1,13 @@
+{
+  "about": "Have Gemini watch a video and describe or critique it.",
+  "version": "0.0.0+c1c2b0d",
+  "commands": ["vidwatch"],
+  "provider": { "id": "gemini", "token_env": "GEMINI_API_KEY", "other_key_envs": ["GOOGLE_API_KEY"] },
+  "check": ["vidwatch", "--help"],
+  "build": {
+    "git": "https://github.com/luquitared/vidwatch.git",
+    "ref": "c1c2b0d83d6c9b73f59fb7cc27bfa18bc0a039df",
+    "entry": "src/cli.ts",
+    "command": "vidwatch"
+  }
+}

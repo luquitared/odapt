@@ -1,0 +1,57 @@
+{
+  "name": "Narrated Explainer",
+  "description": "A topic in, a short narrated video out: script → stills → motion → voice → assembled cut.",
+  "icon": "▶",
+  "modes": [
+    "job",
+    "editor"
+  ],
+  "tools": [
+    "rep",
+    "ffmpeg"
+  ],
+  "inputs": [
+    {
+      "id": "topic",
+      "label": "What should the video explain?",
+      "type": "textarea",
+      "required": true,
+      "placeholder": "How compound interest works"
+    },
+    {
+      "id": "style",
+      "label": "Visual style",
+      "type": "select",
+      "options": [
+        "paper cut-out",
+        "flat vector",
+        "claymation",
+        "ink sketch",
+        "cinematic photo"
+      ],
+      "default": "paper cut-out"
+    },
+    {
+      "id": "length",
+      "label": "Length",
+      "type": "select",
+      "options": [
+        "short (3 scenes)",
+        "medium (5 scenes)",
+        "long (8 scenes)"
+      ],
+      "default": "short (3 scenes)"
+    },
+    {
+      "id": "aspect",
+      "label": "Aspect ratio",
+      "type": "select",
+      "options": [
+        "9:16",
+        "16:9",
+        "1:1"
+      ],
+      "default": "9:16"
+    }
+  ]
+}

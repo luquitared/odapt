@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lofiwave — a quiet console for your coding agents</title>
+<meta name="description" content="See every Claude Code and Codex session on your machine, start and stop them from the browser or your phone, and schedule them like cron. Open source, runs on your own machine.">
+<meta property="og:title" content="lofiwave — a quiet console for your coding agents">
+<meta property="og:description" content="See, start, stop and schedule the coding agents on your machine. Open source; runs on Bun and SQLite.">
+<meta property="og:image" content="https://lofiwave-7wy.pages.dev/logo.png">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fbefdc;
+  --surface: #fff8ee;
+  --ink: #2c2433;
+  --muted: #6e6275;
+  --line: #ead8c4;
+  --peach: #f6c9a8;
+  --violet: #9c7aa6;
+  --violet-ink: #6d4f78;
+  --code-bg: #2c2433;
+  --code-ink: #f6e6d4;
+  --radius: 16px;
+  --display: "Fraunces", Georgia, serif;
+  --body: "Public Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1822;
+    --surface: #26202c;
+    --ink: #f3e7da;
+    --muted: #b3a5b6;
+    --line: #3a3141;
+    --violet-ink: #d7b6e0;
+    --code-bg: #130f17;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); }
+a { color: var(--violet-ink); }
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+
+header { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font: 600 20px/1 var(--display); color: var(--ink); text-decoration: none; }
+.brand img { width: 32px; height: 32px; }
+.gh { font: 500 14px var(--mono); color: var(--ink); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; background: var(--surface); }
+.gh:hover { border-color: var(--violet); }
+
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center; padding: 56px 0 40px; }
+.hero > div { min-width: 0; }
+.hero h1 { font: 400 clamp(38px, 7vw, 64px)/1.04 var(--display); letter-spacing: -0.02em; margin: 0 0 18px; }
+.hero h1 em { font-style: italic; color: var(--violet-ink); }
+.hero p { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+.hero-logo { width: 200px; height: 200px; filter: drop-shadow(0 18px 30px rgba(109, 79, 120, .25)); }
+
+.install { background: var(--code-bg); color: var(--code-ink); border-radius: var(--radius); padding: 18px 20px; font: 400 15px/1.7 var(--mono); position: relative; overflow-x: auto; }
+.install .c { color: #b9a6c0; }
+.install pre { margin: 0; white-space: pre; }
+.copy { position: absolute; top: 12px; right: 12px; font: 500 13px var(--mono); background: var(--peach); color: #2c2433; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.btn { display: inline-block; font: 600 15px var(--body); text-decoration: none; border-radius: 999px; padding: 12px 20px; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn.secondary { border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+
+.wave { display: block; width: 100%; height: 48px; margin: 40px 0 8px; color: var(--violet); opacity: .5; }
+
+section h2 { font: 400 32px/1.15 var(--display); margin: 40px 0 20px; letter-spacing: -0.01em; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; }
+.card h3 { font: 600 17px/1.3 var(--body); margin: 0 0 6px; }
+.card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+code { font: 400 .9em var(--mono); background: color-mix(in srgb, var(--peach) 35%, transparent); padding: 1px 5px; border-radius: 5px; }
+
+.needs { color: var(--muted); font-size: 15.5px; }
+footer { border-top: 1px solid var(--line); margin-top: 64px; padding: 24px 0 40px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+footer a { color: var(--muted); }
+
+@media (max-width: 680px) {
+  .hero { grid-template-columns: 1fr; padding-top: 24px; gap: 8px; }
+  .hero-logo { width: 96px; height: 96px; order: -1; }
+  .grid { grid-template-columns: 1fr; }
+  .install { padding-top: 48px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./"><img src="logo.png" alt="">lofiwave</a>
+    <a class="gh" href="https://github.com/synjuku/lofiwave" data-event="github_click">GitHub ↗</a>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>A quiet console for your <em>coding agents</em>.</h1>
+        <p>See every Claude Code and Codex session running on your machine, start and stop them from your browser or your phone, and schedule them like cron. It runs on your own machine. Open source, MIT.</p>
+        <div class="install">
+          <button class="copy" type="button">copy</button>
+<pre><span class="c"># needs bun; tmux for interactive runs</span>
+git clone https://github.com/synjuku/lofiwave.git
+cd lofiwave
+bun start</pre>
+        </div>
+        <div class="cta">
+          <a class="btn primary" href="https://github.com/synjuku/lofiwave" data-event="github_click">View on GitHub</a>
+          <a class="btn secondary" href="https://github.com/synjuku/lofiwave#readme" data-event="readme_click">Read the docs</a>
+        </div>
+      </div>
+      <img class="hero-logo" src="logo.png" alt="lofiwave logo">
+    </div>
+
+    <svg class="wave" viewBox="0 0 880 48" preserveAspectRatio="none" aria-hidden="true"><path d="M0 24 C 110 4, 220 44, 330 24 S 550 4, 660 24 S 820 40, 880 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+
+    <section>
+      <h2>What it does</h2>
+      <div class="grid">
+        <div class="card"><h3>See every agent</h3><p>Every agent process on the machine, including the ones you started in a terminal: session name, working or idle, model, and its claude.ai link.</p></div>
+        <div class="card"><h3>Real terminals in the browser</h3><p>Start Claude Code or Codex interactively in tmux and type into the real TUI from any browser. Several people can watch the same session.</p></div>
+        <div class="card"><h3>Schedule workflows</h3><p>Cron schedules that launch an agent in a folder, with a history of every run: status, exit code, duration and full logs.</p></div>
+        <div class="card"><h3>From your phone</h3><p>Put it on Tailscale and the UI adapts: tabs move to the bottom, and an interactive terminal resizes to the phone's width.</p></div>
+        <div class="card"><h3>Remote Control</h3><p>Turn on Claude Code's Remote Control for a session that is already running, and keep going in the Claude app.</p></div>
+        <div class="card"><h3>An API for agents</h3><p>Everything is a REST call, documented at <code>/api/docs</code>, so your agents can start and watch other agents.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Small on purpose</h2>
+      <p class="needs">Bun and SQLite, no other dependencies. It listens on <code>127.0.0.1</code> and asks for a token on every call, so other pages in your browser can't drive it. For a team server, set a password and put it behind HTTPS. macOS and Linux; Windows is best-effort.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>lofiwave · MIT licensed</span>
+    <a href="https://github.com/synjuku/lofiwave" data-event="github_click">github.com/synjuku/lofiwave</a>
+  </footer>
+</div>
+<script>
+// Funnel events go to the Odapt control plane (text/plain JSON: no CORS preflight).
+const EVENTS = "https://api.odapt.ai/events";
+function event(type, props) {
+  try {
+    const body = JSON.stringify({ app: "lofiwave", type, props: props || {} });
+    if (!(navigator.sendBeacon && navigator.sendBeacon(EVENTS, new Blob([body], { type: "text/plain" })))) {
+      fetch(EVENTS, { method: "POST", body, keepalive: true, headers: { "content-type": "text/plain" } }).catch(() => {});
+    }
+  } catch {}
+}
+event("view", { ref: document.referrer || null });
+document.querySelectorAll("[data-event]").forEach((a) => a.addEventListener("click", () => event(a.dataset.event)));
+const copy = document.querySelector(".copy");
+copy.addEventListener("click", async () => {
+  const text = "git clone https://github.com/synjuku/lofiwave.git\ncd lofiwave\nbun start";
+  try { await navigator.clipboard.writeText(text); copy.textContent = "copied"; } catch { copy.textContent = "select it"; }
+  setTimeout(() => (copy.textContent = "copy"), 1600);
+  event("install_copied");
+});
+</script>
+</body>
+</html>

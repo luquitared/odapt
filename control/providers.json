@@ -1,0 +1,10 @@
+{
+  "muapi": {
+    "base": "https://api.muapi.ai",
+    "key_env": "MUAPI_API_KEY",
+    "auth_header": "x-api-key",
+    "auth_prefix": "",
+    "cost_usd": "cost.amount_usd",
+    "cost_id": "request_id"
+  }
+}

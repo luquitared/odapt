@@ -1,0 +1,37 @@
+name: Deploy standalone apps
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/**", "package.json", "bun.lock", "scripts/deploy-app.sh", ".github/workflows/deploy-apps.yml"]
+  workflow_dispatch:
+    inputs:
+      app: { description: "one app id (empty = every app with a deploy block)", required: false }
+
+concurrency:
+  group: deploy-apps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # The hosted platform only; forks never reach the self-hosted runner.
+    if: github.repository == 'luquitared/odapt'
+    runs-on: [self-hosted, lucas-vm]
+    steps:
+      - name: Deploy apps
+        env:
+          ONLY: ${{ github.event.inputs.app }}
+        run: |
+          set -euo pipefail
+          cd "$HOME/snappy-studio"; source .env
+          git pull "https://${GH_TOKEN}@github.com/luquitared/odapt.git" main
+          # Private apps (ops/apps, the private odapt-ops repo cloned at ./ops) are copied into apps/.
+          [ -d ops/.git ] && git -C ops pull -q "https://${GH_TOKEN}@github.com/luquitared/odapt-ops.git" main
+          bash scripts/private-apps.sh copy
+          # Every app whose app.json has a deploy block (builds are cached, so unchanged ones are quick).
+          for j in apps/*/app.json; do
+            id=$(basename "$(dirname "$j")")
+            [ -n "$ONLY" ] && [ "$id" != "$ONLY" ] && continue
+            jq -e .deploy "$j" >/dev/null || continue
+            bash scripts/deploy-app.sh "$id"
+          done

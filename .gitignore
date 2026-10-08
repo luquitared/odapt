@@ -1,0 +1,11 @@
+node_modules
+data
+.env
+.DS_Store
+dist
+control.env
+duo.env
+# Private ops repo (luquitared/odapt-ops), imported by CLAUDE.md
+ops
+# Demo media of third-party apps; kept in ops/media
+templates/app-ad/landing/media

@@ -1,0 +1,15 @@
+{
+  "name": "Lingo",
+  "description": "A spoken language game. Talk with a tutor in the language you're learning: ten quick rounds, scored, with a word bank of everything you meet.",
+  "icon": "¿",
+  "modes": ["editor"],
+  "tools": [],
+  "model": "haiku",
+  "voice": { "voice": "marin" },
+  "ui": { "html": true },
+  "inputs": [
+    { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese"], "default": "Spanish" },
+    { "id": "level", "label": "Level", "type": "select", "options": ["beginner", "intermediate", "advanced"], "default": "beginner" },
+    { "id": "topic", "label": "Topic (optional)", "type": "text", "placeholder": "ordering at a café, travel, small talk…" }
+  ]
+}

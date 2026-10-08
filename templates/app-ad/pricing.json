@@ -1,0 +1,8 @@
+{
+  "markup": 3.5,
+  "grant_usd": 0.5,
+  "packs": [
+    { "id": "small", "label": "$10 of credit", "usd": 10 },
+    { "id": "large", "label": "$25 of credit", "usd": 25 }
+  ]
+}

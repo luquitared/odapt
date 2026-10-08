@@ -1,0 +1,12 @@
+{
+  "name": "Name Lab",
+  "description": "Brainstorm names for a product. No media, no spend — the smallest app that exercises the whole loop.",
+  "icon": "✎",
+  "modes": ["editor", "job"],
+  "tools": [],
+  "model": "sonnet",
+  "inputs": [
+    { "id": "product", "label": "What are you naming?", "type": "textarea", "required": true, "placeholder": "A budgeting app for freelancers…" },
+    { "id": "vibe", "label": "Vibe", "type": "select", "options": ["playful", "premium", "technical", "warm"], "default": "playful" }
+  ]
+}

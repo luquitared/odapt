@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odapt — build agentic apps</title>
+<meta name="description" content="Odapt is an open-source app builder for agentic apps: a folder of prompts becomes a live app an agent drives while the user steers. Host it with sign-in, credit and Stripe already wired.">
+<meta property="og:title" content="Odapt — build agentic apps">
+<meta property="og:description" content="A folder of prompts becomes a live app an agent drives while the user steers. Open source, MIT.">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #d9dde2;
+  --surface: #f4f5f7;
+  --ink: #111317;
+  --muted: #5b6370;
+  --line: #b9bfc8;
+  --star: #f2a900;
+  --caption: rgba(14, 15, 18, .86);
+  --on-caption: #fff;
+  --code-bg: #111317;
+  --code-ink: #e6e8eb;
+  --code-dim: #8a929e;
+  --radius: 14px;
+  --display: "Schibsted Grotesk", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171b;
+    --surface: #1e2126;
+    --ink: #eceef1;
+    --muted: #98a0ab;
+    --line: #333841;
+    --caption: rgba(244, 245, 247, .94);
+    --on-caption: #111317;
+    --code-bg: #0b0c0e;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--body); }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--star); outline-offset: 3px; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+.cap {
+  display: inline; font: 800 clamp(30px, 5.4vw, 60px)/1.32 var(--display); letter-spacing: -.02em;
+  background: var(--caption); color: var(--on-caption); padding: .06em .32em; border-radius: .22em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.cap-sm { font-size: clamp(24px, 3.4vw, 36px); }
+h1, h2, h3 { margin: 0; font-weight: inherit; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.brand { font: 700 18px var(--display); text-decoration: none; letter-spacing: -.01em; }
+.brand i { color: var(--star); font-style: normal; }
+.top nav { display: flex; gap: 22px; font: 500 14px var(--mono); }
+.top nav a { text-decoration: none; color: var(--muted); }
+.top nav a:hover { color: var(--ink); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px); gap: 56px; align-items: center; padding: 28px 0 80px; }
+.lede { margin: 28px 0 0; max-width: 40ch; font-size: 19px; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+.ctas { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+.btn {
+  font: 700 16px var(--display); padding: 15px 22px; border-radius: 12px;
+  background: var(--ink); color: var(--bg); text-decoration: none; display: inline-block;
+}
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+.btn:hover { opacity: .88; }
+
+pre, .file {
+  margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: var(--radius);
+  font: 400 13.5px/1.6 var(--mono); overflow-x: auto;
+}
+.file { box-shadow: 0 24px 60px rgba(0, 0, 0, .25); }
+.file .tab { padding: 10px 16px; color: var(--code-dim); border-bottom: 1px solid rgba(255, 255, 255, .08); font-size: 12.5px; }
+.file pre { box-shadow: none; border-radius: 0; background: none; padding: 14px 16px 18px; }
+pre { padding: 18px 20px; }
+.c { color: var(--code-dim); }
+.k { color: var(--star); }
+
+section { padding: 72px 0; border-top: 1.5px solid var(--line); }
+.eyebrow { margin: 0 0 18px; font: 500 13px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.intro { margin: 22px 0 0; max-width: 60ch; color: var(--muted); }
+code { font: 500 .88em var(--mono); }
+
+.points { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.points b { display: block; font: 700 18px var(--display); margin-bottom: 6px; }
+.points p { margin: 0; color: var(--muted); }
+
+.steps { margin: 40px 0 0; padding: 0; list-style: none; display: grid; gap: 28px; counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; counter-increment: step; }
+.steps li::before {
+  content: counter(step); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 16px var(--display); background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line);
+}
+.steps h3 { font: 700 19px var(--display); margin: 5px 0 6px; }
+.steps p { margin: 0 0 12px; color: var(--muted); max-width: 62ch; }
+
+.apps { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.app { background: var(--surface); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+.app h3 { font: 700 21px var(--display); letter-spacing: -.01em; }
+.app p { margin: 0; color: var(--muted); font-size: 16px; }
+.app .tag { align-self: flex-start; font: 500 12px var(--mono); padding: 3px 9px; border-radius: 99px; border: 1.5px solid var(--line); color: var(--muted); }
+.app .tag.live { border-color: var(--star); color: var(--ink); }
+.app a.more { margin-top: auto; padding-top: 10px; font: 700 15px var(--display); text-decoration: none; }
+.app a.more:hover { text-decoration: underline; }
+
+.feature { margin-top: 40px; background: var(--surface); border-radius: var(--radius); padding: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; }
+.feature p { margin: 0; max-width: 60ch; color: var(--muted); }
+.feature b { color: var(--ink); }
+
+footer { padding: 40px 0 56px; border-top: 1.5px solid var(--line); font: 500 13px var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 40px; padding-bottom: 56px; }
+}
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px; }
+  .top nav a.hide-sm { display: none; }
+  .points { grid-template-columns: 1fr; gap: 24px; }
+  section { padding: 56px 0; }
+  .steps li { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./">odapt<i>.</i></a>
+    <nav>
+      <a class="hide-sm" href="#how">How it works</a>
+      <a class="hide-sm" href="#apps">Apps</a>
+      <a href="https://github.com/luquitared/odapt">GitHub</a>
+    </nav>
+  </header>
+  <div class="hero">
+    <div>
+      <h1><span class="cap">Build agentic apps.</span><br><span class="cap">Ship them with billing.</span></h1>
+      <p class="lede">Odapt turns <b>a folder of prompts into a live app</b>: an agent does the work and drives the page, and the person using it steers as it goes. Host it on Odapt and sign-in, credit, Stripe and the API keys are already done.</p>
+      <div class="ctas">
+        <a class="btn" href="#start">Get started</a>
+        <a class="btn ghost" href="https://github.com/luquitared/odapt">View on GitHub</a>
+      </div>
+    </div>
+    <div class="file" aria-label="An example app's files">
+      <div class="tab">templates/name-lab/system.md</div>
+<pre><span class="c">## App: Name Lab</span>
+You help someone name a product.
+
+1. <span class="k">snap title</span> the session after the product.
+   Put up a markdown panel <span class="k">brief</span>.
+2. Put up a form panel <span class="k">names</span> with 6
+   candidate names, and actions
+   <span class="k">more</span>:"More like these" and
+   <span class="k">pick</span>:"I have a favorite".
+3. On <span class="k">more</span>: read the panel back (they
+   may have edited names), keep the
+   ones they touched, replace the rest.
+4. On <span class="k">pick</span>: <span class="k">snap ask</span>, then <span class="k">snap done</span>.</pre>
+    </div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow">How it works</p>
+    <h2><span class="cap cap-sm">An app is a folder.</span></h2>
+    <p class="intro">Write a <code>template.json</code> (name, the input form, the tools it may use), a <code>system.md</code> with the flow, and a <code>kickoff.md</code>. The agent runs as a Claude Code or Codex session and builds the page through the <code>snap</code> CLI: panels, forms, galleries, video, questions. What the person clicks or edits comes back as its next message.</p>
+    <div class="points">
+      <div><b>Live, or come back later</b><p>Open it in the editor and steer, or submit a job and close the tab. The page is a replay of one event log, so both look the same.</p></div>
+      <div><b>Any agent, any page</b><p>Swap Claude, Codex or a cheap OpenRouter model per app. Let the agent write its own sandboxed HTML for games and boards, or add a voice so people talk to it.</p></div>
+      <div><b>Billing built in</b><p>On the hosted platform, people sign in once and keep one credit balance across every app. Paid API calls go through a metered proxy, so your app never holds a key.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <p class="eyebrow">Get started</p>
+    <h2><span class="cap cap-sm">Running in two minutes.</span></h2>
+    <ol class="steps">
+      <li>
+        <div>
+          <h3>Run the studio</h3>
+          <p>You need <a href="https://bun.sh">Bun</a> and <code>claude</code> logged in. Mock mode, the default, needs no other keys.</p>
+<pre><span class="k">git clone</span> https://github.com/luquitared/odapt
+<span class="k">cd</span> odapt && <span class="k">bun install</span>
+<span class="k">bun start</span>        <span class="c"># http://127.0.0.1:7788</span></pre>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Make your app</h3>
+          <p>Copy the smallest example and rewrite its prompts. It shows up in the studio's app list straight away.</p>
+<pre><span class="k">cp -r</span> templates/name-lab templates/my-app
+<span class="c"># edit template.json, system.md, kickoff.md</span></pre>
+        </div>
+      </li>
+      <li>
+        <div>
+          <h3>Charge for it</h3>
+          <p>Add a <code>pricing.json</code> (markup, free credit for new users, credit packs) and point the engine at a control plane. Fixed-price jobs work too: <code>bun run new-app</code> scaffolds an order form, Stripe Checkout and a worker.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="feature">
+      <p><b>Want it hosted and featured on odapt.ai?</b> It's early and we're onboarding apps by hand. Open an issue with what you built, or send feedback the same way.</p>
+      <a class="btn" href="https://github.com/luquitared/odapt/issues/new">Open an issue</a>
+    </div>
+  </div>
+</section>
+
+<section id="apps">
+  <div class="wrap">
+    <p class="eyebrow">Built with Odapt</p>
+    <h2><span class="cap cap-sm">One account across every app.</span></h2>
+    <div class="apps">
+      <div class="app">
+        <span class="tag live">Live · paid</span>
+        <h3>Duo Swap</h3>
+        <p>Two photos in, a music-video clip back with those two people in it. A fixed job at a fixed price.</p>
+        <a class="more" href="https://duo-swap.pages.dev">Try it →</a>
+      </div>
+      <div class="app">
+        <span class="tag live">Live</span>
+        <h3>App Store Ad</h3>
+        <p>Paste an App Store or Google Play link. Get a vertical video ad built from the app's own screenshots and what its users say.</p>
+        <a class="more" href="https://snappy-aon.pages.dev/app-ad/">See real runs →</a>
+      </div>
+      <div class="app">
+        <span class="tag">Example</span>
+        <h3>Lingo</h3>
+        <p>A spoken language game. Talk with a tutor in the language you're learning; the agent draws its own game page.</p>
+        <a class="more" href="https://github.com/luquitared/odapt/tree/main/templates/lingo">Read the source →</a>
+      </div>
+      <div class="app">
+        <span class="tag">Listed</span>
+        <h3>lofiwave</h3>
+        <p>A small web console for the coding agents on your machine. Open source; people run it themselves.</p>
+        <a class="more" href="https://lofiwave-7wy.pages.dev">See it →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <footer>
+    <span>© 2026 Odapt</span>
+    <a href="https://github.com/luquitared/odapt">GitHub</a>
+    <a href="https://github.com/luquitared/odapt/blob/main/LICENSE">MIT license</a>
+  </footer>
+</div>
+</body>
+</html>

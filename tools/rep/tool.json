@@ -1,0 +1,13 @@
+{
+  "about": "Run Replicate models: images, voice, video.",
+  "version": "0.1.0+6af1cd5",
+  "commands": ["rep"],
+  "provider": { "id": "replicate", "token_env": "REPLICATE_API_TOKEN", "base_url_env": "REPLICATE_API_BASE", "base_path": "/v1" },
+  "check": ["rep", "--version"],
+  "build": {
+    "git": "https://github.com/luquitared/replicate-cli.git",
+    "ref": "6af1cd5035ac848dd20cb95a3b1a1a078a8de39b",
+    "entry": "src/cli.ts",
+    "command": "rep"
+  }
+}

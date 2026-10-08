@@ -1,0 +1,37 @@
+name: Deploy control plane
+
+on:
+  push:
+    branches: [main]
+    paths: ["control/**", "templates/*/pricing.json", "apps/*/app.json", "package.json", "bun.lock", ".github/workflows/deploy.yml"]
+  workflow_dispatch: # re-run after changing control.env on the VM: gh workflow run deploy.yml
+
+concurrency:
+  group: deploy-control
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # The hosted platform only; forks never reach the self-hosted runner.
+    if: github.repository == 'luquitared/odapt'
+    runs-on: [self-hosted, lucas-vm]
+    steps:
+      - name: Deploy control plane
+        run: |
+          set -euo pipefail
+          REMOTE_DIR="$HOME/snappy-studio"; CONTAINER="snappy-control"; PORT=7790
+          echo "==> Deploying main ($CONTAINER:$PORT) in $REMOTE_DIR"
+          cd "$REMOTE_DIR"; source .env
+          git pull "https://${GH_TOKEN}@github.com/luquitared/odapt.git" main
+          # Private apps (ops/apps, the private odapt-ops repo cloned at ./ops) are copied into apps/.
+          [ -d ops/.git ] && git -C ops pull -q "https://${GH_TOKEN}@github.com/luquitared/odapt-ops.git" main
+          bash scripts/private-apps.sh copy
+          docker build -f control/Dockerfile -t "$CONTAINER" .
+          docker rm -f "$CONTAINER" 2>/dev/null || true
+          # Secrets come from the clone's gitignored control.env; only Caddy reaches the port.
+          docker run -d --name "$CONTAINER" --restart unless-stopped \
+            --env-file control.env -p "127.0.0.1:$PORT:$PORT" "$CONTAINER"
+          for i in $(seq 1 30); do curl -sf -m 2 "http://localhost:$PORT/health" && break; sleep 2; done
+          echo; docker logs "$CONTAINER" --tail 5
+          curl -sf -m 5 "http://localhost:$PORT/health" >/dev/null || { echo "==> health check failed"; exit 1; }
+          echo "==> main deployed."

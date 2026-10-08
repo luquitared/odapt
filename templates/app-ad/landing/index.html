@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>App Store Ad — a 15-second ad from your store link</title>
+<meta name="description" content="Paste an App Store or Google Play link. Get a vertical video ad built from your app's own screenshots and what its reviewers keep saying. First preview free.">
+<meta property="og:title" content="App Store Ad — a 15-second ad from your store link">
+<meta property="og:description" content="Built from your app's own screenshots and reviews. First preview free.">
+<meta property="og:image" content="media/flighty-animated.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #d9dde2;
+  --surface: #f4f5f7;
+  --ink: #111317;
+  --muted: #5b6370;
+  --line: #b9bfc8;
+  --star: #f2a900;
+  --caption: rgba(14, 15, 18, .86);
+  --on-caption: #fff;
+  --radius: 14px;
+  --display: "Schibsted Grotesk", system-ui, sans-serif;
+  --body: "Public Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15171b;
+    --surface: #1e2126;
+    --ink: #eceef1;
+    --muted: #98a0ab;
+    --line: #333841;
+    --caption: rgba(244, 245, 247, .94);
+    --on-caption: #111317;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--body); }
+img, video { display: block; max-width: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--star); outline-offset: 3px; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* The signature: headlines are set the way the ads set their captions. */
+.cap {
+  display: inline; font: 800 clamp(30px, 5.4vw, 60px)/1.32 var(--display); letter-spacing: -.02em;
+  background: var(--caption); color: var(--on-caption); padding: .06em .32em; border-radius: .22em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.cap-sm { font-size: clamp(24px, 3.4vw, 36px); }
+h1, h2 { margin: 0; font-weight: inherit; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+.brand { font: 700 18px var(--display); text-decoration: none; letter-spacing: -.01em; }
+.brand i { color: var(--star); font-style: normal; }
+.top small { font: 500 13px var(--mono); color: var(--muted); }
+
+/* ------------------------------------------------ hero */
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 56px; align-items: center; padding: 28px 0 72px; }
+.lede { margin: 28px 0 0; max-width: 34ch; font-size: 19px; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+
+form.go { margin-top: 32px; display: flex; gap: 8px; max-width: 560px; }
+form.go input {
+  flex: 1; min-width: 0; font: 15px var(--mono); padding: 15px 16px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+}
+form.go input::placeholder { color: var(--muted); }
+form.go button, .btn {
+  font: 700 16px var(--display); padding: 15px 22px; border-radius: 12px; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--bg); white-space: nowrap; text-decoration: none; display: inline-block;
+}
+form.go button:hover, .btn:hover { opacity: .88; }
+.fine { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+.fine[data-state="error"] { color: var(--ink); font-weight: 600; }
+
+.phone {
+  width: 300px; aspect-ratio: 9 / 16; border-radius: 34px; overflow: hidden; background: #000;
+  box-shadow: 0 0 0 10px var(--ink), 0 30px 60px -20px rgba(0,0,0,.45); position: relative;
+}
+.phone video { width: 100%; height: 100%; object-fit: cover; }
+.sound {
+  position: absolute; right: 12px; top: 12px; font: 500 12px var(--mono); padding: 6px 10px; border-radius: 99px;
+  border: 0; background: rgba(0,0,0,.55); color: #fff; cursor: pointer;
+}
+
+/* ------------------------------------------------ the walk-through */
+section { padding: 72px 0; border-top: 1.5px solid var(--line); }
+.eyebrow { font: 500 13px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 18px; }
+.intro { margin: 22px 0 40px; max-width: 58ch; color: var(--muted); }
+
+.trail { display: grid; grid-template-columns: 1.15fr 1fr 220px; gap: 20px; align-items: stretch; }
+.step { background: var(--surface); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; }
+.step h3 { margin: 0 0 4px; font: 700 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.step .what { margin: 0 0 18px; font-weight: 600; }
+
+.listing { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.listing img { width: 64px; height: 64px; border-radius: 15px; }
+.listing b { display: block; font: 700 18px var(--display); }
+.stars { color: var(--star); letter-spacing: 1px; }
+.listing small { color: var(--muted); font-size: 14px; }
+.shots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: auto; }
+.shots img { border-radius: 6px; aspect-ratio: 1242 / 2688; object-fit: cover; }
+
+.angles { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.angles li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); font-size: 15px; }
+.angles li span { font: 500 12px var(--mono); color: var(--muted); white-space: nowrap; padding-top: 3px; }
+.angles li.on { border-color: var(--ink); font-weight: 600; }
+.angles li.on span { color: var(--ink); }
+
+.trail .phone { width: 100%; border-radius: 22px; box-shadow: 0 0 0 6px var(--ink); }
+
+/* ------------------------------------------------ examples */
+.examples { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.example .phone { width: 100%; max-width: 300px; margin: 0 auto 22px; border-radius: 26px; box-shadow: 0 0 0 7px var(--ink); }
+.example h3 { margin: 0; font: 700 19px var(--display); }
+.tag { display: inline-block; font: 500 12px var(--mono); padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; background: var(--surface); }
+.tag.paid { background: var(--star); color: #111317; }
+.example p { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+
+/* ------------------------------------------------ steps + price */
+ol.flow { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+ol.flow li { counter-increment: s; padding-top: 14px; border-top: 3px solid var(--ink); font-size: 15px; }
+ol.flow li::before { content: counter(s); display: block; font: 800 28px var(--display); margin-bottom: 6px; }
+ol.flow li b { display: block; font-weight: 600; font-size: 16px; margin-bottom: 2px; }
+ol.flow li.paid { border-top-color: var(--star); }
+ol.flow em { font-style: normal; font: 500 12px var(--mono); color: var(--muted); display: block; margin-top: 8px; }
+
+.price { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 40px; }
+.price div { background: var(--surface); border-radius: var(--radius); padding: 24px; }
+.price b { font: 800 30px var(--display); display: block; }
+.price p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+
+.end { text-align: center; padding: 96px 0; }
+.end form.go { margin: 36px auto 0; }
+.end .fine { text-align: center; }
+footer { padding: 28px 0 40px; border-top: 1.5px solid var(--line); font-size: 14px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 920px) {
+  .hero { grid-template-columns: 1fr; gap: 44px; }
+  .hero .phone { width: min(280px, 72vw); margin: 0 auto; }
+  .trail { grid-template-columns: 1fr; }
+  .trail .phone { width: min(260px, 70vw); margin: 0 auto; }
+  .examples { grid-template-columns: 1fr; gap: 56px; }
+  ol.flow { grid-template-columns: 1fr 1fr; }
+  .price { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .wrap { padding: 0 16px; }
+  form.go { flex-direction: column; }
+  ol.flow { grid-template-columns: 1fr; }
+  section { padding: 56px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><a class="brand" href="./">odapt<i>.</i></a><small>App Store Ad</small></header>
+
+  <div class="hero">
+    <div>
+      <h1><span class="cap">Paste your store link.</span><br><span class="cap">Get a 15-second ad.</span></h1>
+      <p class="lede">A vertical video ad built from <b>your app's own screenshots</b> and <b>what your reviewers keep saying</b>. Ready for TikTok, Reels and Shorts.</p>
+      <form class="go" data-cta="hero">
+        <input id="u1" name="url" aria-label="App Store or Google Play link" type="text" inputmode="url" required placeholder="apps.apple.com/us/app/…" autocomplete="off">
+        <button>Make my ad</button>
+      </form>
+      <p class="fine">The first preview is free. Sign in with your email — no card.</p>
+    </div>
+    <div class="phone">
+      <video src="media/flighty-animated.mp4" poster="media/flighty-animated.jpg" autoplay muted loop playsinline></video>
+      <button class="sound" type="button" aria-label="Turn sound on">sound off</button>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">One real run · Flighty</p>
+    <h2><span class="cap cap-sm">Everything in the ad comes from the listing.</span></h2>
+    <p class="intro">This is what it did with Flighty's App Store page. Nothing was uploaded by hand.</p>
+    <div class="trail">
+      <div class="step">
+        <h3>Reads the listing</h3>
+        <p class="what">Icon, rating and every screenshot.</p>
+        <div class="listing">
+          <img src="media/flighty-icon.jpg" alt="Flighty app icon" width="64" height="64">
+          <div><b>Flighty – Live Flight Tracker</b><span class="stars" aria-label="4.8 stars">★★★★★</span> <small>4.8 · 152K ratings</small></div>
+        </div>
+        <div class="shots">
+          <img src="media/flighty-shot-01.jpg" alt="" loading="lazy"><img src="media/flighty-shot-02.jpg" alt="" loading="lazy"><img src="media/flighty-shot-03.jpg" alt="" loading="lazy"><img src="media/flighty-shot-04.jpg" alt="" loading="lazy"><img src="media/flighty-shot-05.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+      <div class="step">
+        <h3>Reads 150 reviews</h3>
+        <p class="what">Finds the angles people bring up again and again. You pick one.</p>
+        <ul class="angles">
+          <li class="on">Know before the airline even tells you <span>14 reviews</span></li>
+          <li>The tracker pilots and crews actually use <span>8 reviews</span></li>
+          <li>Peace of mind for the people you love <span>5 reviews</span></li>
+          <li>One home for every flight <span>5 reviews</span></li>
+        </ul>
+      </div>
+      <div class="phone">
+        <video src="media/flighty-preview.mp4" poster="media/flighty-preview.jpg" muted loop playsinline preload="none" data-autoplay></video>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">Examples</p>
+    <h2><span class="cap cap-sm">Made with this tool, unedited.</span></h2>
+    <p class="intro">Tap a video for sound.</p>
+    <div class="examples">
+      <div class="example">
+        <div class="phone"><video src="media/flighty-preview.mp4" poster="media/flighty-preview.jpg" muted loop playsinline preload="none" data-autoplay></video></div>
+        <span class="tag">Free preview</span>
+        <h3>Flighty</h3>
+        <p>Pictures with slow push-ins, narration and captions. This is what your first run gives you.</p>
+      </div>
+      <div class="example">
+        <div class="phone"><video src="media/flighty-animated.mp4" poster="media/flighty-animated.jpg" muted loop playsinline preload="none" data-autoplay></video></div>
+        <span class="tag paid">Animated</span>
+        <h3>Flighty</h3>
+        <p>The same kind of script, with every scene animated. Uses credit.</p>
+      </div>
+      <div class="example">
+        <div class="phone"><video src="media/clash-preview.mp4" poster="media/clash-preview.jpg" muted loop playsinline preload="none" data-autoplay></video></div>
+        <span class="tag">Free preview</span>
+        <h3>Clash Royale</h3>
+        <p>For games it uses the publisher's own store trailer instead of generated pictures, so the gameplay is real.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="eyebrow">How a run goes</p>
+    <h2><span class="cap cap-sm">You steer. It does the work.</span></h2>
+    <p class="intro">Watch it work live and change anything as it goes, or submit it and come back later.</p>
+    <ol class="flow">
+      <li><b>Paste the link</b>App Store or Google Play.</li>
+      <li><b>Pick the angle</b>From what your reviewers say, with real counts.</li>
+      <li><b>Read the script</b>Four scenes. Ask for any change.</li>
+      <li><b>Watch the preview</b>Voice, captions, your screenshots.<em>free</em></li>
+      <li class="paid"><b>Animate it</b>Every scene comes to life.<em>uses credit</em></li>
+    </ol>
+    <div class="price">
+      <div><b>Free</b><p>Your first preview. Sign in with your email, no card.</p></div>
+      <div><b>$10 or $25</b><p>Credit packs for animated ads and more runs. The same credit works across Odapt apps.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap end">
+  <h2><span class="cap cap-sm">Your app already has an ad in it.</span></h2>
+  <form class="go" data-cta="footer">
+    <input id="u2" name="url" aria-label="App Store or Google Play link" type="text" inputmode="url" required placeholder="apps.apple.com/us/app/…" autocomplete="off">
+    <button>Make my ad</button>
+  </form>
+  <p class="fine">The first preview is free.</p>
+</div>
+
+<div class="wrap"><footer><span>odapt<span style="color:var(--star)">.</span> App Store Ad</span><span>App names, screenshots and footage in the examples belong to their publishers.</span></footer></div>
+
+<script>
+const APP_URL = "{{APP_URL}}";
+
+// Every form hands the link to the app's new-session page.
+for (const form of document.querySelectorAll("form.go")) {
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    let url = form.url.value.trim();
+    if (!/^https?:\/\//.test(url)) url = "https://" + url;
+    const note = form.nextElementSibling;
+    if (!/(apps\.apple\.com|play\.google\.com)\//.test(url)) {
+      note.dataset.state = "error";
+      note.textContent = "That isn't a store link. Copy it from the App Store or Google Play page — it starts with apps.apple.com or play.google.com.";
+      return;
+    }
+    if (!APP_URL || APP_URL.startsWith("{{")) {
+      note.dataset.state = "error";
+      note.textContent = "Runs aren't open yet. Check back soon.";
+      return;
+    }
+    location.href = `${APP_URL}/#/new/app-ad?url=${encodeURIComponent(url)}`;
+  });
+}
+
+// Play videos only while they're on screen; tap one for sound.
+const motionOK = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io = new IntersectionObserver((entries) => {
+  for (const { target: v, isIntersecting } of entries) {
+    if (isIntersecting && motionOK) v.play().catch(() => {}); else v.pause();
+  }
+}, { threshold: 0.4 });
+for (const v of document.querySelectorAll("video")) {
+  if (!motionOK) v.removeAttribute("autoplay");
+  io.observe(v);
+  v.addEventListener("click", () => setSound(v, v.muted));
+}
+function setSound(video, on) {
+  for (const v of document.querySelectorAll("video")) v.muted = true;
+  video.muted = !on;
+  if (on) video.play().catch(() => {});
+  const b = video.parentElement.querySelector(".sound");
+  if (b) b.textContent = on ? "sound on" : "sound off";
+}
+const heroSound = document.querySelector(".sound");
+heroSound.addEventListener("click", () => { const v = heroSound.previousElementSibling; setSound(v, v.muted); });
+</script>
+{{BEACON}}
+</body>
+</html>
