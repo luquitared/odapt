@@ -185,7 +185,7 @@ the sale, Stripe's fee, the provider cost and the net.
 Moved to Better Auth 1.7 (`control/auth.ts`): Google, magic links, and its device-authorization
 plugin for desktop sign-in, on our `users` table so the ledger's foreign key holds. Email-link and
 device sign-in verified locally end to end, and the device token works as a Bearer token on the
-proxy. Google needs its OAuth client before it can be tried.
+proxy. Google sign-in is configured but not yet tried end to end.
 
 ### #4 Control plane not deployed
 Deployed behind Caddy at https://api.odapt.ai; a
