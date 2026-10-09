@@ -17,6 +17,9 @@ it works; `issues.md` is open work.
 - Keys never go in the repo, in an app, or in chat. `.env` and `control.env` are gitignored.
 - The repo is public. Account IDs, server names, customer details and anything else about how the
   hosted platform is operated stay out of it, `issues.md` included: name the env var, not the value.
+- Those go in `ops/`: the private repo `luquitared/odapt-ops`, cloned at `./ops` and imported below
+  (ops facts in its docs, ops issues in `ops/issues.md`). If `ops/` isn't cloned, ask instead of
+  writing them here.
 - Pages served under a path (`api.odapt.ai/<app>`) must not use root-relative URLs.
 - Use `SNAP_PORT`, never `$PORT`.
 - `bun test` and `bun run typecheck` before pushing. New issues go in `issues.md`, with the app's name
