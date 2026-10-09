@@ -5,6 +5,19 @@ Open work, newest first within each status. One heading per issue; close it by m
 
 ## Open
 
+### #18 In-page checkout: not yet tried with a real wallet
+*Opened 2026-10-09*
+
+Standalone apps can take payment on their own page (`ui: "elements"` on `/apps/<id>/checkout`, the
+Express Checkout Element), and a paid order now goes on the buyer's Odapt account (`attachBuyer`).
+Stripe accepts the session; the order flow, the account email and `/account`'s order list are
+tested against a local database. Left:
+- `STRIPE_PUBLISHABLE_KEY` set on the control plane (unset, in-page checkout is refused and the
+  template goes to Stripe's page, as before).
+- A paid run on a phone with Apple Pay, then one with Google Pay, on `api.odapt.ai`.
+- Test mode: `api.odapt.ai` is registered as a payment method domain in live mode only.
+- Apps made before this (Duo Swap) still redirect; move them over by hand.
+
 ### #17 No public example of a paid standalone app
 *Opened 2026-10-08 · the only live one (Duo Swap) is a private app*
 

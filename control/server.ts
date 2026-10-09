@@ -45,9 +45,9 @@ code{font-size:1.4rem;letter-spacing:.1em}.muted{color:#666}@media(prefers-color
   );
 }
 
-const signInOptions = (next: string) => `${googleEnabled ? `<p><a class=btn href="/auth/google?next=${encodeURIComponent(next)}">Continue with Google</a></p><p class=muted>Or get a sign-in link by email:</p>` : ""}
+const signInOptions = (next: string, email = "") => `${googleEnabled ? `<p><a class=btn href="/auth/google?next=${encodeURIComponent(next)}">Continue with Google</a></p><p class=muted>Or get a sign-in link by email:</p>` : ""}
 <form method=post action=/auth/email><input type=hidden name=next value="${esc(next)}">
-<p><input type=email name=email required placeholder="you@example.com"> <button>Email me a link</button></p></form>`;
+<p><input type=email name=email required placeholder="you@example.com" value="${esc(email)}"> <button>Email me a link</button></p></form>`;
 
 async function body(req: Request): Promise<Record<string, any>> {
   const t = req.headers.get("content-type") ?? "";
@@ -74,7 +74,8 @@ const server = Bun.serve<{ id: string }>({
       const app = url.searchParams.get("app");
       const next = safeNext(url.searchParams.get("next"), isApp(app) ? `/welcome?app=${app}` : "/account");
       const err = url.searchParams.get("error") ? `<p>That sign-in didn't go through. Try again.</p>` : "";
-      return page("Sign in to Odapt", err + signInOptions(next));
+      // ?email= from the "your order is saved" email (orders.ts, attachBuyer).
+      return page("Sign in to Odapt", err + signInOptions(next, normalizeEmail(url.searchParams.get("email")) ?? ""));
     }
 
     if (path === "/auth/google") {
@@ -270,8 +271,14 @@ const server = Bun.serve<{ id: string }>({
       const bal = await balance(sql, user.id);
       const packs = billedApps().flatMap((app) => pricing(app)!.packs.map((p) =>
         `<form method=post action=/billing/checkout style="display:inline"><input type=hidden name=app value="${esc(app)}"><input type=hidden name=pack value="${esc(p.id)}"><button>${esc(app)}: ${esc(p.label)}</button></form> `));
+      const orders = await sql`
+        SELECT app_id, product, usd::float8 AS usd, status, paid_at FROM app_payments
+        WHERE user_id = ${user.id} AND status != 'open' ORDER BY paid_at DESC LIMIT 50`;
+      const bought = orders.length
+        ? `<h2>Orders</h2><ul>${orders.map((o: any) => `<li>${esc(appName(o.app_id))}: ${esc(app(o.app_id)?.products[o.product]?.name ?? o.product)}, $${o.usd.toFixed(2)}${o.status === "refunded" ? " (refunded)" : ""} <span class=muted>${o.paid_at.toISOString().slice(0, 10)}</span></li>`).join("")}</ul>`
+        : "";
       const paid = url.searchParams.has("paid") ? `<p>Thanks — your credit appears here once Stripe confirms the payment.</p>` : "";
-      return page("Your account", `${paid}<p class=muted>${esc(user.email)} · <form class=inline method=post action=/auth/sign-out><button class=quiet>Sign out</button></form></p><p>Credit: <b>$${bal.toFixed(2)}</b></p><p>${packs.join("")}</p>`);
+      return page("Your account", `${paid}<p class=muted>${esc(user.email)} · <form class=inline method=post action=/auth/sign-out><button class=quiet>Sign out</button></form></p><p>Credit: <b>$${bal.toFixed(2)}</b></p><p>${packs.join("")}</p>${bought}`);
     }
 
     return json({ error: "not found" }, 404);

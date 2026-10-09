@@ -29,6 +29,18 @@ const view = (o: orders.Order) => ({
   text: o.result?.text ?? null, file: o.status === "done" && o.result?.file ? `${BASE_PATH}/files/${o.id}/${o.result.file}` : null,
 });
 
+// Stripe's own checkout page for an order: the page redirects to checkout_url.
+async function hosted(o: orders.Order) {
+  const s = await orders.odapt.checkout({
+    order_id: o.id, product: "main",
+    success_url: `${PUBLIC_URL}/j/${o.id}?cs={CHECKOUT_SESSION_ID}`, cancel_url: `${PUBLIC_URL}/`,
+    notify_url: `${PUBLIC_URL}/odapt/notify`,
+  });
+  orders.setCheckout(o.id, s.id);
+  orders.odapt.event("checkout_started", { order_id: o.id, ui: "hosted" });
+  return json({ id: o.id, checkout_url: s.url });
+}
+
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
@@ -47,17 +59,33 @@ const server = Bun.serve({
       const input = Object.fromEntries([...(form?.entries() ?? [])].filter(([, v]) => typeof v === "string")) as Record<string, string>;
       if (!input.prompt?.trim()) return json({ error: "tell us what you want" }, 400);
       const o = orders.create(input);
+      // In-page first (Apple Pay, Google Pay, Link on this page); the page falls back to Stripe's own
+      // checkout page (/api/orders/<id>/card) when the browser has none of those or the buyer asks.
       try {
-        const s = FAKE_PAY
-          ? { id: `fake_${o.id}`, url: `${PUBLIC_URL}/dev/pay/${o.id}` }
-          : await orders.odapt.checkout({
-              order_id: o.id, product: "main",
-              success_url: `${PUBLIC_URL}/j/${o.id}?cs={CHECKOUT_SESSION_ID}`, cancel_url: `${PUBLIC_URL}/j/${o.id}`,
-              notify_url: `${PUBLIC_URL}/odapt/notify`,
-            });
+        if (FAKE_PAY) {
+          orders.setCheckout(o.id, `fake_${o.id}`);
+          return json({ id: o.id, checkout_url: `${PUBLIC_URL}/dev/pay/${o.id}` });
+        }
+        const s = await orders.odapt
+          .checkout({
+            order_id: o.id, product: "main", ui: "elements",
+            success_url: `${PUBLIC_URL}/j/${o.id}?cs={CHECKOUT_SESSION_ID}`, notify_url: `${PUBLIC_URL}/odapt/notify`,
+          })
+          .catch(() => null); // the control plane has no publishable key: Stripe's page only
+        if (!s) return hosted(o);
         orders.setCheckout(o.id, s.id);
-        orders.odapt.event("checkout_started", { order_id: o.id });
-        return json({ id: o.id, checkout_url: s.url });
+        orders.odapt.event("checkout_started", { order_id: o.id, ui: "elements" });
+        return json({ id: o.id, client_secret: s.client_secret, publishable_key: s.publishable_key });
+      } catch (e) {
+        return json({ error: (e as Error).message }, 502);
+      }
+    }
+
+    if ((m = path.match(/^\/api\/orders\/([A-Za-z0-9_-]+)\/card$/)) && req.method === "POST") {
+      const o = orders.get(m[1]);
+      if (!o || o.status !== "unpaid" || FAKE_PAY) return json({ error: "no unpaid order" }, 404);
+      try {
+        return await hosted(o);
       } catch (e) {
         return json({ error: (e as Error).message }, 502);
       }

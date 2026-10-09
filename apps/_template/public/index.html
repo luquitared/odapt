@@ -16,6 +16,8 @@ textarea { width: 100%; min-height: 120px; font: inherit; padding: 12px; border-
 button { margin-top: 12px; font: 700 16px system-ui; padding: 14px 20px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; }
 button:disabled { opacity: .6; }
 #error { color: #d9480f; min-height: 1.5em; }
+#wallet { margin-top: 12px; }
+#card { display: none; margin-top: 10px; background: none; color: var(--muted); padding: 0; font-weight: 400; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -25,20 +27,47 @@ button:disabled { opacity: .6; }
   <form id="order">
     <textarea name="prompt" required placeholder="What do you want?"></textarea>
     <button id="pay">Pay $<span class="price">{{PRICE}}</span></button>
+    <div id="wallet"></div>
+    <button type="button" id="card">Pay by card instead</button>
     <p id="error"></p>
   </form>
 </main>
+<script src="https://js.stripe.com/endive/stripe.js"></script>
 <script>
 const BASE = "{{BASE}}";
-document.querySelector("#order").addEventListener("submit", async (e) => {
+const $ = (s) => document.querySelector(s);
+const post = async (path, body) => {
+  const r = await fetch(BASE + path, { method: "POST", body });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || "Something went wrong");
+  return j;
+};
+// Stripe's own checkout page: when this browser has no wallet, or the buyer would rather type a card.
+const toCard = async (id) => { location.href = (await post(`/api/orders/${id}/card`)).checkout_url; };
+
+$("#order").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn = document.querySelector("#pay"), err = document.querySelector("#error");
+  const btn = $("#pay"), err = $("#error");
   btn.disabled = true; err.textContent = "";
   try {
-    const r = await fetch(BASE + "/api/orders", { method: "POST", body: new FormData(e.target) });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || "Something went wrong");
-    location.href = j.checkout_url;
+    const j = await post("/api/orders", new FormData(e.target));
+    if (j.checkout_url) { location.href = j.checkout_url; return; } // APP_FAKE_PAY
+    $("#card").onclick = () => toCard(j.id).catch((x) => { err.textContent = x.message; });
+    // Apple Pay, Google Pay or Link, right here (Checkout Sessions, ui_mode "elements"). Stripe sends the
+    // buyer to the order page once it's paid.
+    const checkout = Stripe(j.publishable_key).initCheckoutElementsSdk({ clientSecret: j.client_secret });
+    const wallet = checkout.createExpressCheckoutElement();
+    wallet.on("ready", ({ availablePaymentMethods }) => {
+      if (!availablePaymentMethods) return toCard(j.id).catch((x) => { err.textContent = x.message; });
+      btn.style.display = "none"; $("#card").style.display = "inline-block";
+    });
+    const actions = await checkout.loadActions();
+    if (actions.type !== "success") return toCard(j.id);
+    wallet.on("confirm", async (event) => {
+      const r = await actions.actions.confirm({ expressCheckoutConfirmEvent: event });
+      if (r.type === "error") err.textContent = r.error.message;
+    });
+    wallet.mount("#wallet");
   } catch (x) { err.textContent = x.message; btn.disabled = false; }
 });
 </script>

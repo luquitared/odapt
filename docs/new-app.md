@@ -57,7 +57,10 @@ work is in the README ("Standalone apps"); this is what to do, in order, and wha
       `apps-env/<id>.env` on the server while the control plane is on a test key. Anyone
       who finds the page can pay with a test card, so nothing that costs money may run in this mode.
 - [ ] **The hosted Checkout page needs a person.** Agents can't drive `checkout.stripe.com`: click
-      through once with the test card `4242 4242 4242 4242`.
+      through once with the test card `4242 4242 4242 4242`. The in-page wallet buttons need one too,
+      on a phone or a browser with a wallet; elsewhere the page goes straight to the card fallback.
+      Wallet buttons only show on domains registered with Stripe (payment method domains, per mode):
+      `api.odapt.ai` is; a Pages front door isn't until it's registered too.
 - [ ] Stripe CLI gotcha: after `stripe login` the profile can sit in live mode and stop holding a test
       key. Pass the key explicitly (`stripe listen --api-key …`) and check which account a key belongs to
       (`GET /v1/account`) before using it.

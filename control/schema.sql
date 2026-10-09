@@ -189,3 +189,8 @@ CREATE TABLE IF NOT EXISTS app_payments (
   refunded_at    timestamptz
 );
 CREATE INDEX IF NOT EXISTS app_payments_app_order ON app_payments (app_id, order_id);
+
+-- The Odapt account a paid order belongs to, made from Stripe's email if there wasn't one (orders.ts,
+-- attachBuyer). Paying doesn't sign anyone in: the buyer claims the account with an email link.
+ALTER TABLE app_payments ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES users(id);
+CREATE INDEX IF NOT EXISTS app_payments_user ON app_payments (user_id);

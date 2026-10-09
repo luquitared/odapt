@@ -12,6 +12,8 @@ export const DATABASE_URL = process.env.CONTROL_DATABASE_URL ?? "";
 
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY ?? "";
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET ?? "";
+// The same account and mode as the secret key. Not a secret: in-page checkout hands it to the browser.
+export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY ?? "";
 
 // Unset → login links are printed to the log instead of emailed.
 export const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";

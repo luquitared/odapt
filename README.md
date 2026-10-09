@@ -114,11 +114,11 @@ the env below (`--env-file control.env`) behind something that terminates HTTPS.
 | `/proxy/<app>/replicate/v1/*` | charged up front from `control/prices.json`; refunded if it fails; unpriced models refused |
 | `POST /proxy/<app>/openai/v1/live/sessions` · `WS …/live/sessions/<id>/attach` | a voice call (`control/live.ts`): GPT-Live only, WebRTC only. The control plane holds the session's sideband itself and meters it (15s up front, then every 30s, the rest at the close; ends a call that empties the wallet); the engine gets a relay without audio and may only send context and hang up |
 | `POST /events {app, type, variant?, session_id?, props?}` | funnel events; open to any origin, and takes `text/plain` JSON so a static landing page can post without a preflight |
-| `POST /apps/<id>/checkout {order_id, product, email?, success_url, cancel_url, notify_url?}` | a standalone app's order: a Checkout session for one of its `app.json` products. `Authorization: Bearer <app key>` on every `/apps/<id>/…` route |
+| `POST /apps/<id>/checkout {order_id, product, email?, success_url, cancel_url, notify_url?, ui?}` | a standalone app's order: a Checkout session for one of its `app.json` products. `ui: "elements"` (no `cancel_url`) returns `client_secret` and `publishable_key` for Stripe's Express Checkout Element on the app's own page instead of a URL. `Authorization: Bearer <app key>` on every `/apps/<id>/…` route |
 | `GET /apps/<id>/payments/<session>` · `POST /apps/<id>/refund {session_id}` | an order's status (checked with Stripe while open) · a full refund, once |
 | `/apps/<id>/proxy/<provider>/<path>` | a provider from `control/providers.json` (muapi today), with the platform's key; the cost each response reports goes in the ledger |
 | `POST /apps/<id>/money {kind, usd, ref, …}` or `{entries: [...]}` | money the platform can't see (a provider called directly); a repeated `ref` is ignored |
-| `GET /account` | balance and buy buttons |
+| `GET /account` | balance, buy buttons, and standalone apps' orders paid with the account's email |
 | `GET /me` · `POST /billing/checkout {app, pack}` | with a Bearer token: email and balance · a credit pack's Checkout URL (JSON when asked for; Stripe returns to `/billing/done`) |
 
 An app is billable once `templates/<id>/pricing.json` exists: `markup`, `grant_usd` (free credit on
@@ -195,7 +195,11 @@ only its app key, which the control plane derives and the deploy hands it:
 - **Payments.** It asks for a Checkout session for one of its `products` (`odapt.checkout`), the
   control plane's webhook confirms it, records the sale and Stripe's fee in `app_money`, and calls the
   app's `notify_url` (signed with the app key; retried every minute for a day). Refunds go back through
-  the platform (`odapt.refund`). No per-app Stripe key or webhook.
+  the platform (`odapt.refund`). No per-app Stripe key or webhook. The template takes payment in place
+  first (Apple Pay, Google Pay, Link through the Express Checkout Element, on a domain registered with
+  Stripe and with `STRIPE_PUBLISHABLE_KEY` set) and falls back to Stripe's page for a card. A paid
+  order goes on the buyer's Odapt account, made from Stripe's email if there's none; that signs no one
+  in, it emails once to say the account exists, and the buyer signs in with an email link.
 - **Providers.** It calls them through `/apps/<id>/proxy/<provider>` (`odapt.provider`), for the ones
   its `app.json` lists, up to `daily_provider_usd` a day; each call's cost goes in the ledger.
 - **Funnel.** `odapt.event(type, props)` from the server, and `POST /events` from landing pages

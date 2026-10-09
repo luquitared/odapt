@@ -3,6 +3,8 @@
 //
 //   const odapt = platform("duo-swap", DATA_DIR);
 //   const s = await odapt.checkout({ order_id, product: "video", success_url, cancel_url, notify_url });
+//   const s = await odapt.checkout({ order_id, product: "video", success_url, notify_url, ui: "elements" });
+//     // in-page: s.client_secret and s.publishable_key for Stripe's Express Checkout Element; no cancel_url
 //   const paid = await odapt.verifyNotify(req);      // in the notify_url handler: the signed "order.paid"
 //   await odapt.payment(sessionId); await odapt.refund(sessionId);
 //   await odapt.email({ order_id, subject, text, key: "done" }); // to the buyer, once per key
@@ -38,6 +40,16 @@ export interface Payment {
   status: "open" | "paid" | "refunded";
   email: string | null;
   livemode: boolean;
+}
+
+export interface CheckoutOptions {
+  order_id: string;
+  product: string;
+  email?: string;
+  success_url: string;
+  cancel_url?: string;
+  notify_url?: string;
+  ui?: "elements";
 }
 
 export interface Paid {
@@ -121,8 +133,10 @@ export function platform(app: string, dataDir: string) {
   }
 
   return {
-    checkout: (o: { order_id: string; product: string; email?: string; success_url: string; cancel_url: string; notify_url?: string }) =>
-      call("POST", "checkout", o) as Promise<{ id: string; url: string }>,
+    checkout: ((o: CheckoutOptions) => call("POST", "checkout", o)) as {
+      (o: CheckoutOptions & { cancel_url: string; ui?: undefined }): Promise<{ id: string; url: string }>;
+      (o: CheckoutOptions & { ui: "elements" }): Promise<{ id: string; url: null; client_secret: string; publishable_key: string }>;
+    },
     payment: (sessionId: string) => call("GET", `payments/${encodeURIComponent(sessionId)}`) as Promise<Payment>,
     refund: (sessionId: string) => call("POST", "refund", { session_id: sessionId }) as Promise<Payment>,
     // To whoever paid for the order (the control plane has their address). "no-email": Stripe has none.

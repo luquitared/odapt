@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { createTarget, estimate, usageCost } from "../control/proxy";
+import { checkoutError } from "../control/orders";
+import type { App } from "../control/apps";
 import { form, verifySignature } from "../control/stripe";
 
 const sign = (payload: string, secret: string, t = Math.floor(Date.now() / 1000)) =>
@@ -18,6 +20,22 @@ describe("stripe", () => {
     expect(await verifySignature(body, sign(body, "whsec_other"), "whsec_x")).toBe(false);
     expect(await verifySignature(body, sign(body, "whsec_x", 1_000), "whsec_x")).toBe(false); // replayed
     expect(await verifySignature(body, null, "whsec_x")).toBe(false);
+  });
+});
+
+describe("standalone app checkout", () => {
+  const a = { id: "x", name: "X", kind: "standalone", products: { main: { name: "One", usd: 5 } } } as unknown as App;
+  const base = { order_id: "o1", product: "main", success_url: "https://e.x/j/o1" };
+
+  test("Stripe's page needs both URLs", () => {
+    expect(checkoutError(a, { ...base, cancel_url: "https://e.x/" })).toBeNull();
+    expect(checkoutError(a, base)).toContain("cancel_url");
+  });
+
+  test("in-page takes no cancel_url", () => {
+    expect(checkoutError(a, { ...base, ui: "elements" })).toBeNull();
+    expect(checkoutError(a, { ...base, ui: "elements", cancel_url: "https://e.x/" })).toContain("leave it out");
+    expect(checkoutError(a, { ...base, ui: "embedded" })).toContain("ui must be");
   });
 });
 
