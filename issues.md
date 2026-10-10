@@ -5,6 +5,19 @@ Open work, newest first within each status. One heading per issue; close it by m
 
 ## Open
 
+### #19 Engine: the Claude harness's tokens aren't metered
+*Opened 2026-10-09 · billing unaffected today (no agent app sells) · the ledger misses an agent app's largest cost*
+
+On a user's credit (`SNAP_CONTROL_URL`), tools go through the metered proxy, and so do Codex
+harnesses with a `provider` (`src/harnesses/codex.ts`). The default `claude` preset in
+`harnesses.json` has no `provider`, and the control plane has no Anthropic route, so the agent's own
+tokens run on the machine's Claude login or `ANTHROPIC_API_KEY` and never reach the ledger. An agent
+app's profit per run is overstated by exactly its biggest line.
+
+Left: an Anthropic upstream in `control/proxy.ts` (cost from the response's `usage`), and the claude
+harness pointed at it with `ANTHROPIC_BASE_URL` and the user's token, with no Anthropic key left in
+the session. Until then, sell agent apps only on the Codex harnesses.
+
 ### #18 In-page checkout: not yet tried with a real wallet
 *Opened 2026-10-09*
 
