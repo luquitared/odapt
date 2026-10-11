@@ -182,7 +182,7 @@ CLOUDFLARE_ACCOUNT_ID=<yours> bunx wrangler pages deploy apps/lofiwave/landing -
 
 Lingo Tune (a static browser game) keeps its game and landing page in its own folder, deployed as a
 Worker with static assets (`wrangler deploy`, custom domain in its `wrangler.jsonc`); only its
-`app.json` is here. Its pages post `view`, `play_click`, `play_view`, `game_start`, `game_end` and a
+`app.json` is here (code: github.com/luquitared/lingo-tune). Its pages post `view`, `play_click`, `play_view`, `game_start`, `game_end` and a
 few more, with an anonymous per-browser `session_id` for counting uniques.
 
 ### Standalone apps
