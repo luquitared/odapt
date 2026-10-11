@@ -180,6 +180,11 @@ project:
 CLOUDFLARE_ACCOUNT_ID=<yours> bunx wrangler pages deploy apps/lofiwave/landing --project-name lofiwave --branch main
 ```
 
+Lingo Tune (a static browser game) keeps its game and landing page in its own folder, deployed as a
+Worker with static assets (`wrangler deploy`, custom domain in its `wrangler.jsonc`); only its
+`app.json` is here. Its pages post `view`, `play_click`, `play_view`, `game_start`, `game_end` and a
+few more, with an anonymous per-browser `session_id` for counting uniques.
+
 ### Standalone apps
 
 To make one, follow **`docs/new-app.md`** (the checklist, with what went wrong last time).
