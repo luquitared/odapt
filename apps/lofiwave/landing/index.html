@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>lofiwave — a quiet console for your coding agents</title>
-<meta name="description" content="See every Claude Code and Codex session on your machine, start and stop them from the browser or your phone, and schedule them like cron. Open source, runs on your own machine.">
-<meta property="og:title" content="lofiwave — a quiet console for your coding agents">
-<meta property="og:description" content="See, start, stop and schedule the coding agents on your machine. Open source; runs on Bun and SQLite.">
+<title>lofiwave — multiplayer Claude Code and Codex</title>
+<meta name="description" content="Multiplayer Claude Code and Codex: share live agent terminals with your team, share workflows that launch on cron, and manage your cloud agents from your home agent over an API. Open source, self-hosted.">
+<meta property="og:title" content="lofiwave — multiplayer Claude Code and Codex">
+<meta property="og:description" content="Shared agent terminals, workflows on cron, and an API so your home agent can run your cloud agents. Open source; runs on Bun and SQLite.">
 <meta property="og:image" content="https://lofiwave-7wy.pages.dev/logo.png">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -79,6 +79,21 @@ section h2 { font: 400 32px/1.15 var(--display); margin: 40px 0 20px; letter-spa
 .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
 code { font: 400 .9em var(--mono); background: color-mix(in srgb, var(--peach) 35%, transparent); padding: 1px 5px; border-radius: 5px; }
 
+.pillar { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; padding: 28px 0; border-top: 1px solid var(--line); }
+.pillar:first-of-type { border-top: 0; }
+.pillar > div { min-width: 0; }
+.pillar .n { font: 500 13px var(--mono); color: var(--violet-ink); letter-spacing: .04em; }
+.pillar h3 { font: 400 26px/1.15 var(--display); margin: 6px 0 10px; letter-spacing: -0.01em; }
+.pillar p { margin: 0; color: var(--muted); }
+.mock { background: var(--code-bg); color: var(--code-ink); border-radius: var(--radius); padding: 14px 16px; font: 400 13px/1.65 var(--mono); overflow-x: auto; }
+.mock pre { margin: 0; white-space: pre; }
+.mock .c { color: #b9a6c0; }
+.mock .k { color: var(--peach); }
+.mock .ok { color: #a8d8b0; }
+.mock-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; color: #b9a6c0; font-size: 12px; }
+.who { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font: 600 11px var(--body); color: #2c2433; }
+.who + .who { margin-left: -8px; box-shadow: 0 0 0 2px var(--code-bg); }
+.mock-bar .sp { flex: 1; }
 .needs { color: var(--muted); font-size: 15.5px; }
 footer { border-top: 1px solid var(--line); margin-top: 64px; padding: 24px 0 40px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 footer a { color: var(--muted); }
@@ -87,6 +102,7 @@ footer a { color: var(--muted); }
   .hero { grid-template-columns: 1fr; padding-top: 24px; gap: 8px; }
   .hero-logo { width: 96px; height: 96px; order: -1; }
   .grid { grid-template-columns: 1fr; }
+  .pillar { grid-template-columns: 1fr; gap: 16px; }
   .install { padding-top: 48px; }
 }
 </style>
@@ -101,11 +117,11 @@ footer a { color: var(--muted); }
   <main>
     <div class="hero">
       <div>
-        <h1>A quiet console for your <em>coding agents</em>.</h1>
-        <p>See every Claude Code and Codex session running on your machine, start and stop them from your browser or your phone, and schedule them like cron. It runs on your own machine. Open source, MIT.</p>
+        <h1>Multiplayer <em>Claude Code</em> and Codex.</h1>
+        <p>Open source. Deploy it to your VM and start coding with friends or your team: everyone sees the same live agent terminals, workflows are shared and launch on cron, and your home agent manages the cloud ones over an API.</p>
         <div class="install">
           <button class="copy" type="button">copy</button>
-<pre><span class="c"># needs bun; tmux for interactive runs</span>
+<pre><span class="c"># on your VM · needs bun and tmux</span>
 git clone https://github.com/luquitared/lofiwave.git
 cd lofiwave
 bun start</pre>
@@ -121,20 +137,71 @@ bun start</pre>
     <svg class="wave" viewBox="0 0 880 48" preserveAspectRatio="none" aria-hidden="true"><path d="M0 24 C 110 4, 220 44, 330 24 S 550 4, 660 24 S 820 40, 880 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
 
     <section>
-      <h2>What it does</h2>
+      <h2>Your agents, together</h2>
+
+      <div class="pillar">
+        <div>
+          <span class="n">01 · shared terminals</span>
+          <h3>See and drive the same agent terminals</h3>
+          <p>Every Claude Code and Codex session runs as the real TUI in tmux. Anyone on the team can open it in the browser or on their phone, watch it work, and type into it. Each session shows who started it, and the header shows who's here.</p>
+        </div>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-bar"><span>claude · fix-flaky-tests</span><span class="sp"></span><span class="who" style="background:#f6c9a8">L</span><span class="who" style="background:#c9b3d6">S</span><span class="who" style="background:#a8d8b0">Y</span></div>
+<pre><span class="c">started by lucas · 12 min ago</span>
+<span class="k">&gt;</span> the retry test still flakes on CI
+● Reading tests/retry.test.ts
+● Found it: the timer isn't faked
+<span class="ok">✓</span> 48 passed
+<span class="k">&gt;</span> <span class="c">seth is typing…</span></pre>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div>
+          <span class="n">02 · workflows on cron</span>
+          <h3>Share workflows and launch them on a schedule</h3>
+          <p>A workflow is a saved agent launch: folder, prompt, model, args. Run it by hand or on cron. Each run is a live session anyone can step into, and every run is kept with its status, duration and full log.</p>
+        </div>
+        <div class="mock" aria-hidden="true">
+<pre><span class="c"># workflows</span>
+<span class="k">nightly-review</span>   codex   0 2 * * 1-5   <span class="ok">✓ 14m</span>
+<span class="k">triage-issues</span>    claude  @hourly       <span class="ok">✓ 3m</span>
+<span class="k">dep-bumps</span>        claude  0 9 * * mon   ● running
+<span class="k">release-notes</span>    claude  by hand       <span class="ok">✓ 6m</span></pre>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div>
+          <span class="n">03 · an API for agents</span>
+          <h3>Manage your cloud agents from your home agent</h3>
+          <p>Everything in the UI is a REST call, documented at <code>/api/docs</code>. Make an API key on the <em>Connect</em> page, hand the URL to the Claude on your laptop, and it can start, watch, type into and stop the agents on your cloud box.</p>
+        </div>
+        <div class="mock" aria-hidden="true">
+<pre><span class="c"># from your laptop's Claude Code</span>
+curl -X POST $LOFIWAVE/api/processes \
+  -H "authorization: Bearer $KEY" \
+  -H "content-type: application/json" \
+  -d '{"type":"claude","cwd":"~/app",
+       "prompt":"ship the fix in #212"}'
+<span class="c"># → 201 {"id": 318, "status": "running"}</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Also</h2>
       <div class="grid">
         <div class="card"><h3>See every agent</h3><p>Every agent process on the machine, including the ones you started in a terminal: session name, working or idle, model, and its claude.ai link.</p></div>
-        <div class="card"><h3>Real terminals in the browser</h3><p>Start Claude Code or Codex interactively in tmux and type into the real TUI from any browser. Several people can watch the same session.</p></div>
-        <div class="card"><h3>Schedule workflows</h3><p>Cron schedules that launch an agent in a folder, with a history of every run: status, exit code, duration and full logs.</p></div>
-        <div class="card"><h3>From your phone</h3><p>Put it on Tailscale and the UI adapts: tabs move to the bottom, and an interactive terminal resizes to the phone's width.</p></div>
+        <div class="card"><h3>From your phone</h3><p>Put it on Tailscale and the UI adapts: a session opens full screen and its terminal resizes to the phone's width.</p></div>
         <div class="card"><h3>Remote Control</h3><p>Turn on Claude Code's Remote Control for a session that is already running, and keep going in the Claude app.</p></div>
-        <div class="card"><h3>An API for agents</h3><p>Everything is a REST call, documented at <code>/api/docs</code>, so your agents can start and watch other agents.</p></div>
+        <div class="card"><h3>Commits under your name</h3><p>Map each teammate to a git identity, and the agents they start commit as them.</p></div>
       </div>
     </section>
 
     <section>
       <h2>Small on purpose</h2>
-      <p class="needs">Bun and SQLite, no other dependencies. It listens on <code>127.0.0.1</code> and asks for a token on every call, so other pages in your browser can't drive it. For a team server, set a password and put it behind HTTPS. macOS and Linux; Windows is best-effort.</p>
+      <p class="needs">Bun and SQLite, no other dependencies. It listens on <code>127.0.0.1</code> and asks for a token on every call, so other pages in your browser can't drive it. For a team, run it on a shared VM, set a password, and put it behind HTTPS: everyone signs in with their name. macOS and Linux; Windows is best-effort.</p>
     </section>
   </main>
 
