@@ -185,6 +185,10 @@ Worker with static assets (`wrangler deploy`, custom domain in its `wrangler.jso
 `app.json` is here (code: github.com/luquitared/lingo-tune). Its pages post `view`, `play_click`, `play_view`, `game_start`, `game_end` and a
 few more, with an anonymous per-browser `session_id` for counting uniques.
 
+ccx (a CLI that searches Claude Code transcripts) is set up the same way: landing page in `site/` of
+github.com/luquitared/ccx, a Worker at ccx.odapt.ai. Its page posts `view`, `copy_install`, `outbound`
+and `scroll_deep`.
+
 ### Standalone apps
 
 To make one, follow **`docs/new-app.md`** (the checklist, with what went wrong last time).

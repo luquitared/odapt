@@ -36,6 +36,27 @@ work is in the README ("Standalone apps"); this is what to do, in order, and wha
       plus a Pages domain.
 - [ ] Funnel events: `view` on the page, then the order's steps (`checkout_started`, `paid`, `done`,
       `failed` come from the template). Add the app's own steps between.
+- [ ] The front door's look: see "Front door" below.
+
+## Front door (every app, listed or standalone)
+
+A listed app (README, "Listed apps") skips the rest of this checklist but does all of this.
+
+- [ ] **A logo.** One SVG (works at 16px: no thin strokes, no small text) plus a 512px PNG of it.
+      Headless Chrome renders the PNGs (`--screenshot`, transparent background) and `sips -z` scales
+      them; its window can't go below ~500px, so render big and scale down.
+- [ ] **Favicons.** `favicon.svg`, `favicon.ico` (16/32/48, PNG payloads are fine) and a 180px
+      `apple-touch-icon.png`, linked from every page.
+- [ ] **A link preview.** A 1200×630 `og.png` (name, one line of what it does, a picture of it), with
+      `og:title`, `og:description`, `og:image` (absolute URL), `og:image:width/height`, `og:url` and
+      `twitter:card` `summary_large_image`. Check the image URL returns 200 after deploy: previews
+      cache the first answer they get.
+- [ ] **Analytics.** An `events.js` posting `view` (with the referrer) and the page's own steps (copy,
+      outbound clicks, `scroll_deep`) to `https://api.odapt.ai/events`, an anonymous per-browser
+      `session_id`, a no-op on localhost. Copy Lingo Tune's or ccx's.
+- [ ] **A public repo is checked first.** Grep for keys, home paths, customer and project names
+      (examples in a README or `--help` count), then `gh repo create --public`. Add a LICENSE.
+- [ ] Works at phone width: the page is screenshotted at ~375px before it ships.
 
 ## 3. Limits (before strangers can reach it)
 

@@ -1,0 +1,7 @@
+{
+  "kind": "listed",
+  "name": "ccx",
+  "description": "Search your Claude Code history from the terminal: a full-text index over every prompt, reply, tool call and result. Open source; people run it themselves.",
+  "repo": "https://github.com/luquitared/ccx",
+  "landing": "https://ccx.odapt.ai"
+}
