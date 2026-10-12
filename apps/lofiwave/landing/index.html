@@ -102,6 +102,15 @@ code { font: 400 .9em var(--mono); background: color-mix(in srgb, var(--peach) 3
 .who { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font: 600 11px var(--body); color: #2c2433; }
 .who + .who { margin-left: -8px; box-shadow: 0 0 0 2px var(--code-bg); }
 .mock-bar .sp { flex: 1; }
+.phone-wrap { display: flex; justify-content: center; }
+.phone { width: 236px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 34px; padding: 10px; box-shadow: 0 18px 36px rgba(109, 79, 120, .22); }
+.screen { background: var(--surface); border-radius: 26px; padding: 18px 14px 16px; font: 400 13px/1.4 var(--body); color: var(--ink); }
+.screen .notch { width: 64px; height: 6px; border-radius: 3px; background: var(--line); margin: -6px auto 14px; }
+.screen h4 { font: 600 16px var(--body); margin: 0 0 12px; }
+.screen label { display: block; font: 500 11px var(--body); color: var(--muted); margin: 10px 0 4px; }
+.screen .f { border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; background: var(--bg); }
+.screen .f.m { font-family: var(--mono); font-size: 12px; }
+.screen .go { margin-top: 14px; text-align: center; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 9px; font-weight: 600; }
 .needs { color: var(--muted); font-size: 15.5px; }
 footer { border-top: 1px solid var(--line); margin-top: 64px; padding: 24px 0 40px; color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 footer a { color: var(--muted); }
@@ -126,7 +135,7 @@ footer a { color: var(--muted); }
     <div class="hero">
       <div>
         <h1>Multiplayer <em>Claude Code</em> and <em>Codex</em>.</h1>
-        <p>Open source. Deploy it to your VM and start coding with friends or your team: everyone sees the same live agent terminals, workflows are shared and launch on cron, and your home agent manages the cloud ones over an API.</p>
+        <p>Open source. Deploy it to your VM and start coding with friends or your team: everyone sees the same live agent terminals, anyone can start a new session from their phone, workflows are shared and launch on cron, and your home agent manages the cloud ones over an API.</p>
         <div class="install">
           <button class="copy" type="button">copy</button>
 <pre><span class="c"># on your VM · needs bun and tmux</span>
@@ -166,7 +175,25 @@ bun start</pre>
 
       <div class="pillar">
         <div>
-          <span class="n">02 · workflows on cron</span>
+          <span class="n">02 · from your phone</span>
+          <h3>Start a new session from your phone</h3>
+          <p>Pick Claude Code or Codex, a folder and a first message, and it starts on your VM. Watch it work and answer its questions from the same screen; the terminal resizes to fit your phone. Put it on Tailscale and it's reachable from anywhere.</p>
+        </div>
+        <div class="phone-wrap" aria-hidden="true">
+          <div class="phone"><div class="screen">
+            <div class="notch"></div>
+            <h4>New session</h4>
+            <label>Agent</label><div class="f">Claude Code</div>
+            <label>Folder</label><div class="f m">~/app</div>
+            <label>First message</label><div class="f">Fix the flaky retry test</div>
+            <div class="go">Start</div>
+          </div></div>
+        </div>
+      </div>
+
+      <div class="pillar">
+        <div>
+          <span class="n">03 · workflows on cron</span>
           <h3>Share workflows and launch them on a schedule</h3>
           <p>A workflow is a saved agent launch: folder, prompt, model, args. Run it by hand or on cron. Each run is a live session anyone can step into, and every run is kept with its status, duration and full log.</p>
         </div>
@@ -181,7 +208,7 @@ bun start</pre>
 
       <div class="pillar">
         <div>
-          <span class="n">03 · an API for agents</span>
+          <span class="n">04 · an API for agents</span>
           <h3>Manage your cloud agents from your home agent</h3>
           <p>Everything in the UI is a REST call, documented at <code>/api/docs</code>. Make an API key on the <em>Connect</em> page, hand the URL to the Claude on your laptop, and it can start, watch, type into and stop the agents on your cloud box.</p>
         </div>
@@ -201,8 +228,8 @@ curl -X POST $LOFIWAVE/api/processes \
       <h2>Also</h2>
       <div class="grid">
         <div class="card"><h3>See every agent</h3><p>Every agent process on the machine, including the ones you started in a terminal: session name, working or idle, model, and its claude.ai link.</p></div>
-        <div class="card"><h3>From your phone</h3><p>Put it on Tailscale and the UI adapts: a session opens full screen and its terminal resizes to the phone's width.</p></div>
         <div class="card"><h3>Remote Control</h3><p>Turn on Claude Code's Remote Control for a session that is already running, and keep going in the Claude app.</p></div>
+        <div class="card"><h3>Resume any session</h3><p>Sessions link to their transcripts, so you can pick up a past Claude conversation by its id.</p></div>
         <div class="card"><h3>Commits under your name</h3><p>Map each teammate to a git identity, and the agents they start commit as them.</p></div>
       </div>
     </section>
