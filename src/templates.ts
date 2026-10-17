@@ -12,7 +12,7 @@
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { TEMPLATES_DIR } from "./config";
+import { ROOT, TEMPLATES_DIR } from "./config";
 import type { HarnessConfig } from "./harness";
 
 export interface TemplateInput {
@@ -69,4 +69,22 @@ export function fill(text: string, vars: { input: Record<string, unknown>; mode:
     .replace(/\{\{input\.([a-zA-Z0-9_]+)\}\}/g, (_, k) => String(vars.input[k] ?? ""))
     .replace(/\{\{input\}\}/g, JSON.stringify(vars.input, null, 2))
     .replace(/\{\{mode\}\}/g, vars.mode);
+}
+
+// Apps the engine doesn't run (apps/<id>/app.json: standalone and listed), for the home page to link
+// out to. A listed app has its `landing`; a standalone one is served at api.odapt.ai/<deploy.path>.
+export interface OtherApp { id: string; name: string; description: string; kind: "standalone" | "listed"; url: string | null }
+
+export function listApps(): OtherApp[] {
+  const dir = join(ROOT, "apps");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((id) => /^[a-z0-9-]+$/.test(id) && existsSync(join(dir, id, "app.json")))
+    .map((id) => {
+      const a = JSON.parse(readFileSync(join(dir, id, "app.json"), "utf8"));
+      const kind = a.kind === "listed" ? "listed" : "standalone";
+      const url = a.landing ?? (a.deploy?.path ? `https://api.odapt.ai${a.deploy.path}/` : null);
+      return { id, name: a.name ?? id, description: a.description ?? "", kind, url } as OtherApp;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

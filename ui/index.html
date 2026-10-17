@@ -46,6 +46,7 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 5px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; text-decoration: none; display: block; transition: transform .12s, border-color .12s; }
 a.card:hover { border-color: var(--ink); transform: translateY(-2px); }
 .card .icon { font-size: 22px; color: var(--accent); } .card h3 { margin: 8px 0 4px; font-size: 19px; } .card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card p.kind { margin-top: 10px; font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
 .section-title { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 40px 0 12px; }
 .rows { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
 .row { display: flex; gap: 12px; align-items: center; padding: 11px 16px; border-top: 1px solid var(--line); text-decoration: none; } .row:first-child { border-top: 0; } .row:hover { background: var(--bg); }
@@ -272,10 +273,11 @@ const app = $("#app");
 let source = null;
 
 async function home() {
-  const [templates, sessions] = await Promise.all([api("/api/templates"), api("/api/sessions")]);
+  const [templates, sessions, others] = await Promise.all([api("/api/templates"), api("/api/sessions"), api("/api/apps").catch(() => [])]);
   app.innerHTML = `<div class="wrap"><div class="bar"><a class="brand" href="#/">odapt<i>.</i>studio</a><span class="acct">${accountHtml()}</span></div>
     <div class="hero"><h1>Pick a template. Let the agent run it.</h1><p>Submit it as a job and come back later, or open it in the editor and steer it live. Same engine either way.</p></div>
     <div class="grid">${templates.map((t) => `<a class="card" href="#/new/${t.id}"><div class="icon">${esc(t.icon ?? "◆")}</div><h3>${esc(t.name)}</h3><p>${esc(t.description)}</p></a>`).join("")}</div>
+    ${others.length ? `<div class="section-title">Other apps</div><div class="grid">${others.map((a) => `<a class="card" ${a.url ? `href="${esc(a.url)}" target="_blank" rel="noopener"` : ""}><div class="icon">↗</div><h3>${esc(a.name)}</h3><p>${esc(a.description)}</p><p class="kind">${a.kind === "listed" ? "Runs elsewhere" : "Pay per job"}</p></a>`).join("")}</div>` : ""}
     ${sessions.length ? `<div class="section-title">Sessions</div><div class="rows">${sessions.map((s) => `<a class="row" href="#/s/${s.id}"><span class="t">${esc(s.title)}</span><small>${esc(s.mode)}${s.mock ? " · mock" : ""} · ${ago(s.updatedAt)}</small><span class="pill ${s.status}">${STATUS_LABEL[s.status]}</span></a>`).join("")}</div>` : ""}</div>`;
 }
 

@@ -10,7 +10,7 @@ import { presets } from "./harness";
 import { launchRunner } from "./launcher";
 import { newSession, type ActionBody, type EmitBody, type LogEvent, type Session } from "./protocol";
 import { SqliteStore } from "./store";
-import { listTemplates, loadTemplate } from "./templates";
+import { listApps, listTemplates, loadTemplate } from "./templates";
 import { LiveError, liveSession, liveTarget, startCall, type Call } from "./voice";
 
 const store = new SqliteStore(join(DATA_DIR, "snappy.db"));
@@ -150,6 +150,7 @@ const server = Bun.serve({
     if (path === "/api/health") return json({ ok: true });
     if (path === "/api/harnesses") return json(presets());
     if (path === "/api/templates") return json(listTemplates().map(({ dir, ...t }) => t));
+    if (path === "/api/apps") return json(listApps());
 
     // -- the signed-in account (src/account.ts)
     if (path === "/api/account" && req.method === "GET") return json(await account(url.searchParams.get("app") ?? undefined));
