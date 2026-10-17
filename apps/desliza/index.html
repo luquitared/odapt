@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desliza: learn Spanish from the moments everyone quotes</title>
+<meta name="description" content="Scroll famous moments from Hispanic TV, music, sports and history, and learn the Spanish everyone quotes.">
+<meta name="theme-color" content="#140B12">
+<meta property="og:title" content="Desliza">
+<meta property="og:description" content="Learn Spanish from the moments everyone quotes: El Chavo, Selena, Maradona, García Márquez and more.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Hanken+Grotesk:ital,wght@0,400;0,600;0,800;1,400&display=swap">
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#feed">Skip to the feed</a>
+
+<header class="hud" aria-label="Desliza">
+  <button class="logo" id="introBtn" type="button" aria-label="Desliza: about and how it works">DESLIZA</button>
+  <div class="hud-right">
+    <span class="pill streak" id="streak" title="Daily streak"><span aria-hidden="true">🔥</span> <b id="streakN">0</b><span class="sr"> day streak</span></span>
+    <span class="pill xp" id="xp" title="Experience points"><b id="xpN">0</b> XP</span>
+    <button class="icon-btn" id="vocabBtn" type="button" aria-label="Mi vocabulario">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2.2 0 3.6 1.2 5.4 3.3 1.8-2.1 3.2-3.3 5.4-3.3 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>
+      <span class="badge" id="vocabN" hidden>0</span>
+    </button>
+    <button class="icon-btn" id="filterBtn" type="button" aria-label="Filter by level and category">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+      <span class="badge dot" id="filterDot" hidden></span>
+    </button>
+  </div>
+</header>
+
+<main id="feed" class="feed" tabindex="-1" aria-label="Clips feed"></main>
+
+<!-- Intro -->
+<section class="intro" id="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle" hidden>
+  <div class="intro-inner">
+    <p class="intro-brand" aria-hidden="true">DESLIZA</p>
+    <h1 id="introTitle">Learn Spanish from the moments everyone quotes.</h1>
+    <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+    <ul class="intro-how">
+      <li><b>Scroll</b> famous scenes from telenovelas, songs, goals and speeches.</li>
+      <li><b>Tap the line</b> to see it in English. Heart the phrases you want to keep.</li>
+      <li><b>Every few clips</b> a quick question on one you watched.</li>
+    </ul>
+    <fieldset class="intro-level">
+      <legend>Your Spanish</legend>
+      <div class="chips" id="introLevels">
+        <button type="button" class="chip" data-levels="A1,A2">Just starting</button>
+        <button type="button" class="chip" data-levels="A2,B1,B2">Getting by</button>
+        <button type="button" class="chip" data-levels="B2,C1">Fluent-ish</button>
+        <button type="button" class="chip on" data-levels="">Show me everything</button>
+      </div>
+    </fieldset>
+    <button type="button" class="cta" id="startBtn">Empezar <span aria-hidden="true">↓</span></button>
+    <p class="intro-keys">Keyboard: ↑ ↓ to move, space to pause, M for sound.</p>
+  </div>
+</section>
+
+<!-- Sheet (phrases, vocab, filters) -->
+<div class="scrim" id="scrim" hidden></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet-grip" aria-hidden="true"></div>
+  <div class="sheet-head">
+    <h2 id="sheetTitle">Frases</h2>
+    <button type="button" class="icon-btn close" id="sheetClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</section>
+
+<aside class="kbd-hint" aria-label="Keyboard shortcuts"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>space</kbd> pause</span><span><kbd>M</kbd> sound</span><span><kbd>1</kbd>–<kbd>3</kbd> answer</span></aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="events.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
