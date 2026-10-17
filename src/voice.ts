@@ -24,7 +24,7 @@ export const LIVE_MODEL = "gpt-live-1";
 // session bills 15 seconds up front, credited against the running time, so 15s is the minimum.
 export const LIVE_USD_PER_MIN = 0.05;
 export const LIVE_MIN_SECONDS = 15;
-const GREETING = "The call has just started and the person can hear you; they already pressed Talk, so never tell them to. Greet them now, briefly. If your instructions say what to do when the call starts, do that. Otherwise, if the page is waiting on them, tell them what for. Then pause and listen.";
+const GREETING = "A new call has just started and the person can hear you; they already pressed Talk, so never tell them to. Speak first, right now, even if you spoke in an earlier call: greet them briefly. If your instructions say what to do when the call starts, do that. Otherwise, if the page is waiting on them, tell them what for. Then pause and listen.";
 export const liveCost = (seconds: number) => (Math.max(seconds, LIVE_MIN_SECONDS) / 60) * LIVE_USD_PER_MIN;
 
 // Context appends take at most 500 tokens each.

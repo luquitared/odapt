@@ -99,6 +99,7 @@ pre.json { font: 12px var(--mono); overflow: auto; margin: 0; white-space: pre-w
 .acct b { color: var(--ink); font: 600 13px var(--mono); } .acct .low { color: var(--bad); } .acct .code { font: 600 15px var(--mono); color: var(--ink); letter-spacing: .08em; }
 .acct select { width: auto; padding: 6px 10px; border-radius: 999px; } .acct .btn { padding: 6px 12px; font-size: 13px; } .btn.quiet { border-color: transparent; background: none; color: var(--muted); }
 .formerr { color: var(--bad); font-size: 14px; margin: 14px 0 0; }
+.toast.micwarn { border-radius: 14px; max-width: min(92vw, 560px); line-height: 1.5; } .toast.micwarn select { margin-left: 6px; max-width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 0; border-radius: 8px; padding: 2px 6px; }
 .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 14px; z-index: 9; }
 @media (max-width: 860px) { .session { grid-template-columns: minmax(0, 1fr); } .top { flex-wrap: wrap; row-gap: 8px; padding: 10px 16px; } .top h2 { flex-basis: calc(100% - 40px); } .cols { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 46vh; } .rail { border-left: 0; border-top: 1px solid var(--line); } .stage { padding: 16px; } }
 </style>
@@ -451,11 +452,12 @@ async function startCall(sessionId, onState) {
   const peer = new RTCPeerConnection(), out = new Audio();
   out.autoplay = true;
   peer.addEventListener("track", (e) => { out.srcObject = new MediaStream([e.track]); out.play().catch(() => toast("Allow audio playback to hear the voice.")); });
-  const mic = await navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => { throw new Error("Allow the microphone to talk."); });
-  for (const t of mic.getAudioTracks()) peer.addTrack(t, mic);
+  const mic = await openMic(savedMic()).catch(() => openMic(null)).catch(() => { throw new Error("Allow the microphone to talk."); });
+  const sender = peer.addTrack(mic.getAudioTracks()[0], mic);
+  const check = micCheck(mic, sender);
   const events = peer.createDataChannel("oai-events");
   let ended = false, closing = null;
-  const cleanup = () => { if (ended) return; ended = true; clearTimeout(closing); mic.getTracks().forEach((t) => t.stop()); events.close(); peer.close(); out.srcObject = null; onState("ended"); };
+  const cleanup = () => { if (ended) return; ended = true; clearTimeout(closing); check.stop(); events.close(); peer.close(); out.srcObject = null; onState("ended"); };
   events.addEventListener("message", ({ data }) => {
     const ev = JSON.parse(data);
     if (ev.type === "session.started") onState("live");
@@ -482,6 +484,45 @@ async function startCall(sessionId, onState) {
       closing = setTimeout(cleanup, 10_000); // session.closed normally arrives first
     },
   };
+}
+
+// The browser picks its own microphone, and a Mac often has silent ones (BlackHole, Zoom's, an
+// iPhone that isn't near): if the call hears nothing for a few seconds, say which mic it's using
+// and offer the others. The choice is remembered per browser.
+const savedMic = () => { try { return localStorage.getItem("snap.mic"); } catch { return null; } };
+const openMic = (deviceId) => navigator.mediaDevices.getUserMedia({ audio: deviceId ? { deviceId: { exact: deviceId } } : true });
+function micCheck(stream, sender) {
+  let mic = stream, quiet = 0, timer = null, banner = null;
+  const ctx = new AudioContext(), buf = new Float32Array(2048);
+  let analyser = null;
+  const listen = () => { analyser = ctx.createAnalyser(); analyser.fftSize = 2048; ctx.createMediaStreamSource(mic).connect(analyser); quiet = 0; };
+  listen();
+  const show = async () => {
+    if (banner) return;
+    const label = mic.getAudioTracks()[0]?.label || "the default microphone";
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput" && d.deviceId !== "default");
+    banner = document.createElement("div");
+    banner.className = "toast micwarn";
+    banner.innerHTML = `We can't hear you on <b>${esc(label)}</b>. Try another mic: <select>${devices.map((d) => `<option value="${esc(d.deviceId)}" ${d.label === label ? "selected" : ""}>${esc(d.label || "Microphone")}</option>`).join("")}</select>`;
+    banner.querySelector("select").addEventListener("change", async (e) => {
+      try {
+        const next = await openMic(e.target.value);
+        await sender.replaceTrack(next.getAudioTracks()[0]);
+        mic.getTracks().forEach((t) => t.stop());
+        mic = next; listen();
+        try { localStorage.setItem("snap.mic", e.target.value); } catch {}
+        banner.remove(); banner = null;
+      } catch { toast("Couldn't switch to that microphone."); }
+    });
+    document.body.append(banner);
+  };
+  timer = setInterval(() => {
+    analyser.getFloatTimeDomainData(buf);
+    let peak = 0; for (const v of buf) peak = Math.max(peak, Math.abs(v));
+    if (peak > 0.02) { quiet = 0; banner?.remove(); banner = null; }
+    else if (++quiet === 24) show(); // ~6s of near-silence
+  }, 250);
+  return { stop() { clearInterval(timer); banner?.remove(); mic.getTracks().forEach((t) => t.stop()); ctx.close(); } };
 }
 
 function toast(text) { const el = document.createElement("div"); el.className = "toast"; el.textContent = text; document.body.append(el); setTimeout(() => el.remove(), 3500); }
