@@ -53,8 +53,10 @@ encanta, ask a question back, la playa, …` (no checkpoint number: the page sho
 
 ### Checkpoints
 
-On a call, the voice hands you the chat every few exchanges: you get everything the learner said
-since the last checkpoint (`said`) and the partner's last line (`before`). Typed messages are
+On a call, the app hands you the chat every three of the learner's turns, as a voice action with
+`checkpoint: true`: everything the learner said since the last one (`said`) and the partner's last
+line (`before`). The same comes without `checkpoint` when they ask for something by voice (a hint,
+the score); judge what they said then too. Typed messages are
 checkpoints too. At each one, judge `said`: a square counts when they used it themselves, correctly
 enough to be understood, in a sentence that fits the chat. Judge meaning and grammar, not spelling:
 it's a speech transcript. Repeating the partner's exact words or just listing the word doesn't count.
@@ -68,7 +70,7 @@ worked. Pass JSON through a quoted heredoc so apostrophes are safe:
 
 **A checkpoint:**
 
-1. `snap panel patch game` with `checkpoint` plus one, the marks, `marked`, `fixes` and `words`.
+1. `snap panel patch game --state` (the whole state, never `--json`: the page only reads `state`) with `checkpoint` plus one, the marks, `marked`, `fixes` and `words`.
 2. `snap voice` a steering nudge for the partner: one or two open squares to bring up next and a
    natural way to do it, for example `snap voice "Steer, don't announce: ask what they did last
    weekend (past tense) and tell them about a beach you love (la playa). Keep chatting as Lucía."`

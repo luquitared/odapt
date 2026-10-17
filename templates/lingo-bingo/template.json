@@ -5,7 +5,7 @@
   "modes": ["editor"],
   "tools": [],
   "model": "haiku",
-  "voice": { "voice": "marin" },
+  "voice": { "voice": "marin", "checkpoint": 3 },
   "ui": { "html": true },
   "inputs": [
     { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese", "Korean", "Mandarin"], "default": "Spanish" },

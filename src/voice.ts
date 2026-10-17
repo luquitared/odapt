@@ -130,8 +130,13 @@ export class VoiceBridge {
   private consumed = 0; // the runner's action cursor
   private reply: string[] = [];
   private seen = new Set<string>();
+  private turns = 0; // the person's turns since the app last saw what they said
+  private userSpoke = false;
 
-  constructor(private h: BridgeHooks, private opts = { captionGapMs: 1200, settleMs: 700 }) {}
+  // `checkpointEvery`: every N turns of the person's, hand the app what they said even though the
+  // voice didn't delegate. GPT-Live delegates when the person asks for something, never on a
+  // schedule, so an app that judges a free conversation (Lingo Bingo) needs this.
+  constructor(private h: BridgeHooks, private opts: { captionGapMs: number; settleMs: number; checkpointEvery?: number } = { captionGapMs: 1200, settleMs: 700 }) {}
 
   /** Panels already on the page when the call started: the voice was told about them up front. */
   onPage(panels: { id: string; title: string }[]) {
@@ -203,10 +208,21 @@ export class VoiceBridge {
     this.flushCaptions();
     const said = this.heard.trim();
     this.heard = "";
+    this.turns = 0;
     const r = this.h.publish("user", { type: "action", action: { type: "voice", payload: { said, before: this.lastSaid } } });
     if (!r) return;
     this.pending.push({ id, seq: r.seq });
     this.h.wake();
+  }
+
+  // A checkpoint: what they said, without a delegation to answer. The agent's reply reaches the voice
+  // as commentary, like any update.
+  private checkpoint() {
+    const said = this.heard.trim();
+    this.turns = 0;
+    if (!said || this.pending.length) return; // a delegation in flight will carry it
+    this.heard = "";
+    if (this.h.publish("user", { type: "action", action: { type: "voice", payload: { said, before: this.lastSaid, checkpoint: true } } })) this.h.wake();
   }
 
   // A turn ended. It answered every delegation whose action the runner had taken by then.
@@ -229,6 +245,12 @@ export class VoiceBridge {
   // Transcripts come in fragments with no turn boundaries: a line is done when the other side
   // starts talking or after a pause.
   private caption(who: "user" | "assistant", delta: string) {
+    // The voice answering ends one of the person's turns.
+    if (who === "user") this.userSpoke = true;
+    else if (this.userSpoke) {
+      this.userSpoke = false;
+      if (this.opts.checkpointEvery && ++this.turns >= this.opts.checkpointEvery) queueMicrotask(() => this.checkpoint());
+    }
     const other = who === "user" ? "assistant" : "user";
     if (this.captions[other]) this.flushCaptions(other);
     this.captions[who] += delta;
@@ -287,6 +309,7 @@ export interface Call { liveId: string; bridge: VoiceBridge; hangUp(): void }
 export async function startCall(
   target: LiveTarget, session: object, sdp: string, page: { id: string; title: string }[],
   hooks: Omit<BridgeHooks, "send"> & { subscribe(l: (e: LogEvent) => void): () => void; onEnd(): void },
+  opts: { checkpointEvery?: number } = {},
 ): Promise<{ answer: { session: { id: string }; transport: { type: string; sdp: string } }; call: Call }> {
   const res = await fetch(`${target.base}/live/sessions`, {
     method: "POST",
@@ -306,7 +329,7 @@ export async function startCall(
     const s = JSON.stringify({ ...cmd, event_id: `snap_${crypto.randomUUID().slice(0, 12)}` });
     if (ws.readyState === WebSocket.OPEN) ws.send(s); else queue.push(s);
   };
-  const bridge = new VoiceBridge({ ...hooks, send });
+  const bridge = new VoiceBridge({ ...hooks, send }, { captionGapMs: 1200, settleMs: 700, ...opts });
   bridge.onPage(page);
   const off = hooks.subscribe((e) => bridge.logged(e));
   ws.addEventListener("open", () => {

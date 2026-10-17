@@ -85,7 +85,7 @@ everything the learner said in it (`said`) and the character's last line (`befor
 scene from that: did they get the mission done, and each bonus? Judge meaning and grammar, not
 spelling: it's a speech transcript. Then:
 
-1. `snap panel patch game` with the stop's stars, `last`, the new words, `hints`, and the next stop's
+1. `snap panel patch game --state` (the whole state, never `--json`: the page only reads `state`) with the stop's stars, `last`, the new words, `hints`, and the next stop's
    scene (or, after stop 5, `over` and `review`, then `snap done` with the stars and rank instead of
    steps 2 and 3).
 2. `snap voice` the next scene's brief.

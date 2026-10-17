@@ -106,7 +106,11 @@ function describe(a: ActionBody): string {
     // its closing text, which only reaches the user through the fallback.
     case "message": return `The user says: ${typeof a.payload === "string" ? a.payload : JSON.stringify(a.payload)}\n(Answer with \`snap say\` — they can't see anything else you write.)`;
     case "voice": {
-      const v = (a.payload ?? {}) as { said?: string; before?: string };
+      const v = (a.payload ?? {}) as { said?: string; before?: string; checkpoint?: boolean };
+      // A checkpoint (src/voice.ts) isn't a request: the conversation goes on without waiting for you.
+      if (v.checkpoint) return `Checkpoint: on the call, the user has said this since you last heard from them (they didn't ask you anything): "${v.said}"` +
+        (v.before ? `\n(The voice's last line: "${v.before}")` : "") +
+        "\n(Do what this app does at a checkpoint. Use `snap say` only if it says to: the voice reads it out over the conversation.)";
       return `The user said, by voice: "${v.said || "(nothing was transcribed)"}"` +
         (v.before ? `\n(Just before, the voice had said: "${v.before}")` : "") +
         "\n(Answer with `snap say`, short and speakable: the voice reads it out to them.)";

@@ -7,7 +7,7 @@ import { history, liveCost, liveSession, pageSummary, speakable, VoiceBridge, ty
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // A bridge wired to an in-memory log, the way src/server.ts wires it to the real one.
-function rig() {
+function rig(checkpointEvery?: number) {
   const sent: LiveCommand[] = [];
   const log: LogEvent[] = [];
   let seq = 0, woken = 0;
@@ -16,7 +16,7 @@ function rig() {
     publish: (origin, body) => { const e = { seq: ++seq, sessionId: "s", at: Date.now(), origin, body } as LogEvent; log.push(e); return e; },
     wake: () => void woken++,
     log: () => {},
-  }, { captionGapMs: 5, settleMs: 5 });
+  }, { captionGapMs: 5, settleMs: 5, checkpointEvery });
   // The agent side: what a runner would append while it takes the user's action and answers.
   const agent = (...bodies: any[]) => { for (const body of bodies) { const e = { seq: ++seq, sessionId: "s", at: Date.now(), origin: "agent", body } as LogEvent; log.push(e); bridge.logged(e); } };
   const actions = () => log.filter((e) => e.body.type === "action").map((e) => ({ seq: e.seq, ...(e.body as any).action }));
@@ -42,6 +42,35 @@ describe("voice bridge", () => {
     expect(sent.some((c) => c.type === "session.commentary.append")).toBe(false); // held until the turn ends
     agent({ type: "runner", state: "running", actionCursor: a.seq }, { type: "status", status: "waiting" });
     expect(sent.at(-1)).toEqual({ type: "session.commentary.append", delegation_id: "del_1", content: "Right! Manzana is apple." });
+  });
+
+  test("checkpoints: every N of the person's turns, the app gets what they said without a delegation", async () => {
+    const { bridge, sent, agent, actions, woken } = rig(2);
+    const turn = (said: string, reply: string) => {
+      bridge.live({ type: "session.input_transcript.delta", delta: said });
+      bridge.live({ type: "session.output_transcript.delta", delta: reply });
+    };
+    turn("Me gusta el café.", "¡A mí también!");
+    await sleep(1);
+    expect(actions()).toEqual([]);
+    turn(" Tengo un perro.", "¿Cómo se llama?");
+    await sleep(1);
+    const [a] = actions();
+    expect(a.payload).toEqual({ said: "Me gusta el café. Tengo un perro.", before: "¡A mí también!", checkpoint: true });
+    expect(woken()).toBe(1);
+    // No delegation to answer: what the agent says goes to the voice as plain commentary.
+    agent({ type: "status", status: "working" }, { type: "message", text: "Line!" });
+    expect(sent.at(-1)).toEqual({ type: "session.commentary.append", delegation_id: null, content: "Line!" });
+  });
+
+  test("no checkpoints unless the app asks for them", async () => {
+    const { bridge, actions } = rig();
+    for (let i = 0; i < 6; i++) {
+      bridge.live({ type: "session.input_transcript.delta", delta: "hola" });
+      bridge.live({ type: "session.output_transcript.delta", delta: "hola" });
+    }
+    await sleep(1);
+    expect(actions()).toEqual([]);
   });
 
   test("a turn that hasn't taken the action yet doesn't answer it", async () => {
@@ -130,7 +159,7 @@ describe("voice session config", () => {
     expect(cfg.instructions).toContain("- Round 1: Bonjour");
     expect(cfg.input.slice(0, -1).map((m) => [m.role, m.content[0].text])).toEqual([["assistant", "Welcome!"], ["user", "salut"]]);
     // The greeting is a developer message at creation; one appended after the start is ignored.
-    expect(cfg.input.at(-1)).toMatchObject({ role: "developer", content: [{ type: "input_text", text: expect.stringContaining("Greet the person now") }] });
+    expect(cfg.input.at(-1)).toMatchObject({ role: "developer", content: [{ type: "input_text", text: expect.stringContaining("Speak first") }] });
     expect(cfg.client.data_channel.allowed_client_events).toEqual(["session.close", "session.input_audio.mute", "session.input_audio.unmute"]);
     expect(pageSummary({ ...s, panels: {} })).toBe("- Nothing yet.");
   });

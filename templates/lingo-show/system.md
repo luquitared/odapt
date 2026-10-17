@@ -74,7 +74,7 @@ to its question with your answer key. Judge meaning, not spelling: it's a speech
 accepted alternative is right; a small slip that keeps the meaning is right; no answer is wrong.
 Then:
 
-1. `snap panel patch game` with the round's `results`, `last`, the new words, and `round` moved on
+1. `snap panel patch game --state` (the whole state, never `--json`: the page only reads `state`) with the round's `results`, `last`, the new words, and `round` moved on
    (after round 4: `over` and `review`, then `snap done` with the final score's story instead of
    steps 2 and 3).
 2. `snap voice` the next round's brief, starting "Round N:", with nothing about the round just

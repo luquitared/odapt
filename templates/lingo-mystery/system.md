@@ -110,7 +110,7 @@ questions they really asked and understood: a goal counts when they asked it in 
 in a way the suspect could answer, not for the exact words. Judge meaning and grammar, not spelling:
 it's a speech transcript. Then:
 
-1. `snap panel patch game` with the suspect's stars, status and note, the new clues, `last`, the new
+1. `snap panel patch game --state` (the whole state, never `--json`: the page only reads `state`) with the suspect's stars, status and note, the new clues, `last`, the new
    words, `hints`, and the next step's interview.
 2. `snap voice` the next brief (the next suspect, or the chief for the accusation).
 3. `snap say` the result, last, in one or two short sentences of English: the stars, the clue they

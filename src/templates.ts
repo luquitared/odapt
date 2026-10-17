@@ -37,7 +37,7 @@ export interface Template {
   agentTools?: string[]; // Claude's built-in tools for this app; default Bash, Read, Write, Edit
   harness?: string | HarnessConfig; // preset name from harnesses.json, or inline; default "claude"
   model?: string; // Claude's model for this app; SNAP_MODEL overrides
-  voice?: { voice?: string }; // people can talk to it (src/voice.ts); `voice` is GPT-Live's voice, default marin
+  voice?: { voice?: string; checkpoint?: number }; // people can talk to it (src/voice.ts); `voice` is GPT-Live's voice, default marin; `checkpoint`: hand the agent what they said every N turns
   ui?: { html?: boolean }; // html: the agent may draw `html` panels (prompts/html-panels.md)
   dir: string;
 }

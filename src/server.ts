@@ -74,7 +74,7 @@ async function startVoice(s: Session, sdp: string): Promise<Response> {
       wake: () => void ensureRunner(store.getSession(s.id)!),
       log,
       onEnd: () => { if (calls.get(s.id) === call) calls.delete(s.id); },
-    });
+    }, { checkpointEvery: t.voice.checkpoint });
     calls.set(s.id, call);
     log("call", call.liveId);
     return json(answer, 201);
