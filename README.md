@@ -76,7 +76,8 @@ gets `prompts/voice-agent.md`. Captions land in the log as `voice` events. With 
 go through its proxy (below) on the user's credit; without one, `OPENAI_API_KEY` is used directly.
 `OPENAI_LIVE_BASE` points either side at a stand-in. `SNAP_VOICE_DEBUG=1` logs every sideband event
 but the transcript fragments to the server's output. `templates/lingo` (a spoken language game) is
-the example app.
+the example app; `templates/lingo-live` lets the voice play whole role-play scenes and delegate only
+when a scene ends, so a scene runs at the speed of talk.
 
 ## HTML panels
 

@@ -1,0 +1,15 @@
+{
+  "name": "Lingo Live",
+  "description": "A spoken language adventure. Talk your way through a city in the language you're learning: five scenes with live characters, stars for every mission, a passport stamp at each stop.",
+  "icon": "🛂",
+  "modes": ["editor"],
+  "tools": [],
+  "model": "haiku",
+  "voice": { "voice": "marin" },
+  "ui": { "html": true },
+  "inputs": [
+    { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese", "Korean", "Mandarin"], "default": "Spanish" },
+    { "id": "level", "label": "Level", "type": "select", "options": ["beginner", "intermediate", "advanced"], "default": "beginner" },
+    { "id": "trip", "label": "Where to? (optional)", "type": "text", "placeholder": "a night out in Mexico City, a market in Lyon, Kyoto by train…" }
+  ]
+}
