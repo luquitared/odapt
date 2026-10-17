@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9dcc0; --file: #f4ead3; --paper: #fffaf0; --ink: #221d17; --muted: #6e6455; --line: #d6c6a3;
+    --red: #b3261e; --lamp: #c98a1b; --room: #1d1a17; --room-ink: #f1e6cf; --green: #2f6b45;
+    --shadow: 0 1px 0 rgba(34,29,23,.08), 0 12px 26px -14px rgba(34,29,23,.45);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12100d; --file: #1c1915; --paper: #24201a; --ink: #ecdfc6; --muted: #a39680; --line: #3a3329;
+      --red: #ff5b4b; --lamp: #f0b54d; --room: #0a0908; --room-ink: #f1e6cf; --green: #6fc38f;
+      --shadow: 0 1px 0 rgba(0,0,0,.4), 0 14px 30px -14px rgba(0,0,0,.8); }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 "Archivo", system-ui, sans-serif; }
+  body { padding: 14px 14px 22px; }
+  .wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
+  .type { font-family: "Special Elite", "Courier Prime", monospace; }
+  .mono { font-family: "Courier Prime", monospace; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--lamp); outline-offset: 2px; }
+  .label { font: 700 11px "Courier Prime", monospace; text-transform: uppercase; letter-spacing: .16em; color: var(--muted); }
+
+  /* case file header */
+  .file { position: relative; background: var(--file); border: 1px solid var(--line); border-radius: 4px 14px 14px 14px; padding: 16px 16px 14px; box-shadow: var(--shadow); margin-top: 12px; }
+  .file::before { content: "CASE FILE"; position: absolute; top: -22px; left: -1px; padding: 3px 14px 2px; background: var(--file); border: 1px solid var(--line); border-bottom: 0; border-radius: 8px 8px 0 0; font: 700 11px "Courier Prime", monospace; letter-spacing: .16em; color: var(--muted); }
+  .head { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+  .head .t { flex: 1 1 240px; }
+  .head h1 { margin: 0; font-size: 26px; line-height: 1.05; font-family: "Special Elite", monospace; font-weight: 400; }
+  .head .where { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .what { margin: 10px 0 0; font-size: 14px; }
+  .q { display: inline-block; margin-top: 8px; padding: 3px 9px; background: var(--red); color: #fff; font: 700 13px "Courier Prime", monospace; transform: rotate(-1deg); }
+  .score { display: grid; gap: 4px; justify-items: end; min-width: 150px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; background: var(--paper); border: 1px solid var(--line); font-weight: 800; white-space: nowrap; }
+  .chip.pop { animation: pop .5s ease; }
+  .rank { font-size: 12px; color: var(--muted); text-align: right; }
+  .rank b { color: var(--ink); }
+  .meter { width: 150px; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--red); transition: width .9s cubic-bezier(.2,.8,.2,1); }
+
+  /* suspects */
+  .suspects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .sus { position: relative; background: var(--paper); border: 1px solid var(--line); padding: 10px 8px 10px; text-align: center; box-shadow: var(--shadow); transition: transform .3s; }
+  .sus:nth-child(1) { transform: rotate(-1.5deg); } .sus:nth-child(3) { transform: rotate(1.2deg); }
+  .sus.now { transform: translateY(-3px) scale(1.03); outline: 2px solid var(--lamp); }
+  .sus .pin { position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--red); box-shadow: 0 2px 2px rgba(0,0,0,.35); }
+  .sus .face { font-size: 34px; line-height: 1.1; filter: grayscale(.2); }
+  .sus.waiting .face { filter: grayscale(1) brightness(.85); opacity: .7; }
+  .sus .nm { font-weight: 800; font-size: 14px; margin-top: 4px; }
+  .sus .rl { font-size: 11px; color: var(--muted); line-height: 1.25; }
+  .sus .st { color: var(--lamp); font-size: 12px; letter-spacing: 1px; min-height: 16px; margin-top: 3px; }
+  .sus .tag { display: inline-block; margin-top: 4px; font: 700 10px "Courier Prime", monospace; letter-spacing: .12em; padding: 1px 5px; border: 1.5px solid currentColor; }
+  .sus.done .tag { color: var(--green); } .sus.now .tag { color: var(--red); } .sus.waiting .tag { color: var(--muted); }
+  .sus .note { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: left; line-height: 1.3; }
+  .sus.accused { outline: 3px solid var(--red); }
+
+  /* interview room */
+  .room { position: relative; overflow: hidden; border-radius: 14px; background: var(--room); color: var(--room-ink); padding: 18px; display: grid; gap: 14px; box-shadow: var(--shadow); }
+  .room::before { content: ""; position: absolute; left: 50%; top: -60px; width: 420px; height: 300px; margin-left: -210px; background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--lamp) 38%, transparent), transparent 65%); pointer-events: none; animation: flicker 6s infinite; }
+  .room.enter { animation: fade .6s ease; }
+  .room > * { position: relative; }
+  .room .label { color: color-mix(in srgb, var(--room-ink) 60%, transparent); display: flex; gap: 8px; align-items: center; }
+  .room .label .rec { margin-left: auto; color: #ff5b4b; display: inline-flex; gap: 6px; align-items: center; }
+  .room .label .rec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #ff5b4b; animation: blink 1.4s infinite; }
+  .who { display: flex; gap: 14px; align-items: center; }
+  .who .av { flex: none; width: 82px; height: 82px; border-radius: 50%; display: grid; place-items: center; font-size: 50px; background: radial-gradient(circle at 50% 30%, #3a332a, #15120f); box-shadow: 0 0 0 3px color-mix(in srgb, var(--lamp) 50%, transparent), 0 10px 25px rgba(0,0,0,.6); animation: sway 4s ease-in-out infinite; }
+  .who h2 { margin: 0; font: 400 28px/1 "Special Elite", monospace; }
+  .who .rl { opacity: .7; font-size: 14px; margin-top: 3px; }
+  .who .mood { display: inline-block; margin-top: 6px; font: 700 11px "Courier Prime", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--lamp); }
+  .speech { border: 0; background: var(--room-ink); color: #1d1a17; text-align: left; padding: 14px 16px; border-radius: 4px; width: 100%; position: relative; box-shadow: 4px 4px 0 color-mix(in srgb, var(--lamp) 70%, transparent); }
+  .speech .line { font: 400 clamp(21px, 5.2vw, 30px)/1.2 "Special Elite", monospace; }
+  .speech .gloss { margin-top: 8px; font: 14px "Courier Prime", monospace; opacity: .7; }
+  .speech .gloss.hide { filter: blur(5px); user-select: none; }
+  .speech small { display: block; margin-top: 6px; font: 700 10px "Courier Prime", monospace; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+
+  /* line of questioning */
+  .lines { background: var(--paper); border: 1px solid var(--line); border-left: 5px solid var(--red); padding: 12px 14px; display: grid; gap: 8px; box-shadow: var(--shadow); }
+  .lines ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  .lines li { display: flex; gap: 10px; align-items: baseline; }
+  .lines li .bx { flex: none; width: 15px; height: 15px; border: 2px solid var(--ink); border-radius: 2px; transform: translateY(2px); }
+  .lines li.main { font-weight: 800; font-size: 17px; }
+  .lines li.bonus { color: var(--muted); }
+  .lines li.bonus em { font: 700 10px "Courier Prime", monospace; letter-spacing: .12em; color: var(--green); font-style: normal; margin-right: 4px; }
+  .hintline { padding: 9px 11px; background: color-mix(in srgb, var(--lamp) 18%, transparent); font-weight: 600; border-radius: 4px; }
+
+  .kit .phrases { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .phrase { background: var(--paper); border: 1px dashed var(--line); padding: 8px 12px; text-align: left; border-radius: 4px; }
+  .phrase b { display: block; font-family: "Courier Prime", monospace; }
+  .phrase span { font-size: 12px; color: var(--muted); }
+  .phrase.locked b, .phrase.locked span { filter: blur(5px); }
+  .phrase.locked::after { content: "tap to peek"; display: block; font: 700 10px "Courier Prime", monospace; text-transform: uppercase; letter-spacing: .1em; color: var(--red); margin-top: 2px; }
+
+  .controls { display: grid; gap: 10px; }
+  .ask { display: flex; gap: 8px; }
+  .ask input { flex: 1; min-width: 0; font: 15px "Courier Prime", monospace; padding: 12px 14px; border-radius: 6px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); }
+  .btn { border-radius: 6px; padding: 11px 15px; font-weight: 800; background: var(--paper); border: 1.5px solid var(--line); }
+  .btn.go { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row .tip { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  /* report on the last interview */
+  .report { position: relative; background: var(--paper); border: 1px solid var(--line); padding: 14px 14px 14px 112px; min-height: 108px; box-shadow: var(--shadow); background-image: repeating-linear-gradient(transparent 0 27px, color-mix(in srgb, var(--line) 60%, transparent) 27px 28px); }
+  .report.play { animation: fade .5s ease; }
+  .stamp { position: absolute; left: 12px; top: 14px; width: 86px; padding: 8px 4px; border: 3px solid var(--red); color: var(--red); text-align: center; transform: rotate(-10deg); font: 700 11px "Courier Prime", monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .report.play .stamp { animation: slam .5s cubic-bezier(.3,1.6,.5,1) both; }
+  .stamp .s { font-size: 17px; letter-spacing: 1px; }
+  .report h3 { margin: 0 0 4px; font: 400 18px "Special Elite", monospace; }
+  .report p { margin: 0 0 6px; color: var(--muted); }
+  .gain { font-weight: 700; color: var(--green); margin: 4px 0; }
+  .fix { padding: 7px 10px; border-left: 3px solid var(--lamp); background: color-mix(in srgb, var(--lamp) 10%, transparent); margin-top: 6px; }
+  .fix s { color: var(--muted); } .fix b { color: var(--green); }
+  .fix span { display: block; font-size: 12px; color: var(--muted); }
+
+  /* notebook */
+  .notebook { background: var(--paper); border: 1px solid var(--line); padding: 14px 16px 14px 34px; position: relative; box-shadow: var(--shadow); }
+  .notebook::before { content: ""; position: absolute; left: 22px; top: 0; bottom: 0; border-left: 2px solid color-mix(in srgb, var(--red) 45%, transparent); }
+  .notebook ol { margin: 8px 0 0; padding: 0 0 0 4px; list-style: none; display: grid; gap: 6px; }
+  .notebook li { font-family: "Courier Prime", monospace; }
+  .notebook li.key::before { content: "📌 "; }
+  .notebook li.new { animation: pop .6s ease; }
+  .notebook li small { color: var(--muted); font-family: "Archivo", sans-serif; }
+  .notebook .empty { color: var(--muted); font-style: italic; margin-top: 6px; }
+  .words { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .word { padding: 3px 9px; border: 1px solid var(--line); border-radius: 99px; font-size: 13px; background: var(--file); }
+  .word i { font-style: normal; color: var(--muted); }
+
+  /* reveal */
+  .reveal { background: var(--room); color: var(--room-ink); border-radius: 14px; padding: 24px 18px; text-align: center; display: grid; gap: 12px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+  .reveal::before { content: ""; position: absolute; inset: -40% -10% auto; height: 340px; background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--lamp) 35%, transparent), transparent 65%); pointer-events: none; }
+  .reveal > * { position: relative; }
+  .verdict { justify-self: center; padding: 8px 18px; border: 4px double; font: 400 30px/1 "Special Elite", monospace; transform: rotate(-4deg); animation: slam .6s cubic-bezier(.3,1.6,.5,1) both; }
+  .verdict.yes { color: #6fc38f; } .verdict.no { color: #ff5b4b; }
+  .reveal .av { font-size: 64px; }
+  .reveal .truth { font: 16px/1.5 "Courier Prime", monospace; text-align: left; background: rgba(255,255,255,.05); padding: 12px 14px; border-radius: 6px; }
+  .reveal .rk { font: 400 26px "Special Elite", monospace; color: var(--lamp); }
+  .reveal .review { text-align: left; }
+  .reveal .review .fix { background: rgba(255,255,255,.05); }
+  .reveal .review .fix s, .reveal .review .fix span { color: color-mix(in srgb, var(--room-ink) 60%, transparent); }
+  .reveal .btn.go { background: var(--room-ink); color: var(--room); border-color: var(--room-ink); justify-self: center; }
+  .waiting { padding: 40px 18px; text-align: center; color: var(--muted); }
+  .waiting .type { font-size: 24px; color: var(--ink); }
+
+  @keyframes flicker { 0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: .6; } 94% { opacity: 1; } 96% { opacity: .75; } }
+  @keyframes blink { 50% { opacity: .2; } }
+  @keyframes sway { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes slam { 0% { opacity: 0; transform: scale(2.4) rotate(-25deg); } 100% { opacity: 1; } }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  @media (max-width: 480px) {
+    .suspects { gap: 7px; }
+    .sus .note { display: none; }
+    .sus .face { font-size: 28px; }
+    .report { padding-left: 94px; }
+    .stamp { width: 72px; font-size: 10px; }
+    .score { justify-items: start; }
+    .rank { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="file waiting"><div class="type">Opening the case file…</div><p>The detective is on the way.</p></div></div>
+<script>
+const RANKS = [[0, "Rookie"], [3, "Constable"], [6, "Inspector"], [9, "Detective"], [11, "Chief Inspector"]];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const stars = (n, of = 3) => "★".repeat(n) + "☆".repeat(Math.max(0, of - n));
+const app = document.getElementById("app");
+const peeked = new Set();
+let prev = null, glossOpen = false, muted = false, ctx = null;
+
+function score(s) {
+  const total = (s.suspects ?? []).reduce((a, x) => a + (x.status === "done" ? x.stars || 0 : 0), 0) + (s.finale?.done ? s.finale.stars || 0 : 0);
+  const max = (s.suspects ?? []).length * 3 + 3;
+  let i = 0;
+  while (i + 1 < RANKS.length && total >= RANKS[i + 1][0]) i++;
+  const [lo, name] = RANKS[i], next = RANKS[i + 1];
+  return { total, max, rank: name, next: next?.[1], toNext: next ? next[0] - total : 0, pct: next ? (total - lo) / (next[0] - lo) : 1 };
+}
+
+// Sounds made here: the frame can't load audio.
+function tone(notes, type = "square") {
+  if (muted) return;
+  try {
+    ctx ??= new AudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    for (const [f, t, d = .22] of notes) {
+      const o = ctx.createOscillator(), g = ctx.createGain(), at = ctx.currentTime + t;
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.08, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + d);
+      o.connect(g).connect(ctx.destination); o.start(at); o.stop(at + d + .05);
+    }
+  } catch {}
+}
+const typewriter = () => tone([[1800, 0, .04], [1500, .07, .04], [1900, .13, .04], [900, .3, .25]], "square");
+const sting = (good) => good ? tone([[392, 0, .3], [494, .15, .3], [587, .3, .5]], "triangle") : tone([[311, 0, .4], [233, .25, .7]], "sawtooth");
+
+const byId = (s, id) => (s.suspects ?? []).find((x) => x.id === id);
+
+function header(s, sc) {
+  const c = s.case ?? {};
+  return `<section class="file"><div class="head">
+    <div class="t"><div class="label">${esc(s.language)} · ${s.over ? "case closed" : s.step > (s.suspects ?? []).length ? "the accusation" : `interview ${esc(s.step)} of ${(s.suspects ?? []).length}`}</div>
+      <h1>${esc(c.title)}</h1><div class="where">${esc(c.place)}</div></div>
+    <div class="score"><span class="chip" id="starchip">★ ${sc.total}<span style="color:var(--muted);font-weight:600">/${sc.max}</span></span>
+      <div class="rank"><b>${esc(sc.rank)}</b>${sc.next ? ` · ${sc.toNext} ★ to ${esc(sc.next)}` : ""}</div><div class="meter"><i id="meter"></i></div></div>
+  </div>
+  ${!s.over ? `<p class="what">${esc(c.what)}</p><span class="q">${esc(c.question)}</span>` : ""}</section>`;
+}
+
+function suspects(s) {
+  const accused = s.finale?.accused;
+  return `<section class="suspects" aria-label="Suspects">${(s.suspects ?? []).map((x) => `
+    <div class="sus ${esc(x.status)} ${s.over && accused === x.id ? "accused" : ""}"><span class="pin"></span>
+      <div class="face" aria-hidden="true">${esc(x.avatar || "👤")}</div><div class="nm">${esc(x.name)}</div><div class="rl">${esc(x.role)}</div>
+      <div class="st">${x.status === "done" ? stars(x.stars) : ""}</div>
+      <span class="tag">${x.status === "done" ? "QUESTIONED" : x.status === "now" ? "IN THE ROOM" : "WAITING"}</span>
+      ${x.note ? `<div class="note">${esc(x.note)}</div>` : ""}</div>`).join("")}</section>`;
+}
+
+function report(s) {
+  const l = s.last;
+  if (!l) return "";
+  const who = byId(s, l.who), word = ["Dead end", "A lead", "Good work", "Cracked it"][l.stars] ?? "";
+  return `<section class="report" id="report" aria-live="polite">
+    <div class="stamp">${esc(word)}<div class="s">${stars(l.stars)}</div></div>
+    <h3>Report: ${esc(who?.name ?? l.who)}</h3>
+    ${l.praise ? `<p>${esc(l.praise)}</p>` : ""}
+    ${(l.clues ?? []).map((c) => `<div class="gain">🔎 ${esc(c)}</div>`).join("")}
+    ${(l.fixes ?? []).map((f) => `<div class="fix"><s>${esc(f.said)}</s> → <b>${esc(f.better)}</b>${f.why ? `<span>${esc(f.why)}</span>` : ""}</div>`).join("")}
+  </section>`;
+}
+
+function room(s) {
+  const iv = s.interview, accuse = iv.kind === "accuse", who = accuse ? { name: "The Chief", role: "chief of police", avatar: "🕵️" } : byId(s, iv.who) ?? {};
+  const goals = [iv.goal, ...(iv.bonus ?? [])];
+  return `<section class="room" id="room">
+      <div class="label"><span>${accuse ? "The accusation" : "Interview room"}</span><span class="rec">REC</span></div>
+      <div class="who"><div class="av" aria-hidden="true">${esc(who.avatar || "👤")}</div>
+        <div><h2>${esc(who.name)}</h2><div class="rl">${esc(who.role)}</div>${iv.mood ? `<span class="mood">${esc(iv.mood)}</span>` : ""}</div></div>
+      <button class="speech" id="speech" aria-label="Their first line; press to show the English">
+        <div class="line">${esc(iv.opener)}</div>
+        <div class="gloss ${glossOpen ? "" : "hide"}">${esc(iv.opener_gloss)}</div>
+        <small>${glossOpen ? "English shown" : "Tap for English"}</small>
+      </button>
+    </section>
+    <section class="lines"><div class="label">${accuse ? "Make your case" : "Line of questioning"}</div>
+      <ul>${goals.map((g, k) => `<li class="${k ? "bonus" : "main"}"><span class="bx"></span><span>${k ? "<em>BONUS</em>" : ""}${esc(g)}</span></li>`).join("")}</ul>
+      ${iv.hint ? `<div class="hintline">💡 ${esc(iv.hint)}</div>` : ""}
+    </section>
+    ${(iv.phrases ?? []).length ? `<section class="kit"><div class="label">${accuse ? "Things you could say" : "Questions you could ask"}</div><div class="phrases">${iv.phrases.map((p, k) => {
+      const open = peeked.has(k);
+      return `<button class="phrase ${open ? "" : "locked"}" data-peek="${k}" aria-label="${open ? esc(p.t) : "Hidden phrase, press to show"}"><b>${esc(open ? p.t : "••••••••")}</b><span>${esc(open ? p.g : "•••••")}</span></button>`;
+    }).join("")}</div></section>` : ""}
+    <section class="controls">
+      <form class="ask" id="ask"><input id="line" autocomplete="off" placeholder="${accuse ? "Name the culprit" : "Ask"} in ${esc(s.language)}…" aria-label="Your line"><button class="btn go">${accuse ? "Accuse" : "Ask"}</button></form>
+      <div class="row">
+        <button class="btn" id="hint" ${s.hints > 0 ? "" : "disabled"}>💡 Hint ×${Math.max(0, s.hints ?? 0)}</button>
+        ${accuse ? "" : `<button class="btn" id="skip">Next suspect</button>`}
+        <button class="btn" id="mute" aria-pressed="${muted}">${muted ? "🔇" : "🔊"}</button>
+        <span class="tip">🎙️ Press <b>Talk</b> at the top to question them out loud.</span>
+      </div>
+    </section>`;
+}
+
+function notebook(s, freshClues, freshWords) {
+  const c = s.clues ?? [], w = s.words ?? [];
+  return `<section class="notebook"><div class="label">Notebook · ${c.length} clue${c.length === 1 ? "" : "s"}</div>
+    ${c.length ? `<ol>${c.map((x) => `<li class="${x.key ? "key" : ""} ${freshClues.has(x.text) ? "new" : ""}">${esc(x.text)} <small>— ${esc(byId(s, x.from)?.name ?? x.from ?? "")}</small></li>`).join("")}</ol>`
+      : `<div class="empty">Nothing yet. Ask the right questions.</div>`}
+    ${w.length ? `<div class="words">${w.map((x) => `<span class="word" ${freshWords.has(x.word) ? 'style="border-color:var(--green)"' : ""}>${esc(x.word)} <i>${esc(x.meaning)}</i></span>`).join("")}</div>` : ""}
+  </section>`;
+}
+
+function reveal(s, sc) {
+  const f = s.finale ?? {}, acc = byId(s, f.accused);
+  return `<section class="reveal">
+    <div class="label" style="color:inherit;opacity:.6">${esc(s.case?.title)}</div>
+    <div class="verdict ${f.solved ? "yes" : "no"}">${f.solved ? "CASE SOLVED" : "WRONG SUSPECT"}</div>
+    ${acc ? `<div><div class="av">${esc(acc.avatar)}</div><div>You accused <b>${esc(acc.name)}</b>, ${esc(acc.role)}.</div></div>` : ""}
+    ${f.truth ? `<div class="truth">${esc(f.truth)}</div>` : ""}
+    <div>★ ${sc.total} of ${sc.max}</div><div class="rk">${esc(sc.rank)}</div>
+    ${(s.review ?? []).length ? `<div class="review"><div class="label" style="color:inherit;opacity:.6">Take these home</div>${s.review.map((r) => typeof r === "string" ? `<div class="fix"><b>${esc(r)}</b></div>`
+      : `<div class="fix"><b>${esc(r.better ?? r.word)}</b>${r.said ? ` <s>${esc(r.said)}</s>` : ""}<span>${esc(r.why ?? r.meaning ?? "")}</span></div>`).join("")}</div>` : ""}
+    <button class="btn go" id="again">🗂️ A new case</button>
+  </section>`;
+}
+
+function draw(s) {
+  if (!s || !s.suspects) return;
+  const sc = score(s), p = prev, ps = p ? score(p) : null;
+  const newStep = !p || p.step !== s.step || p.over !== s.over;
+  const newReport = s.last && JSON.stringify(s.last) !== JSON.stringify(p?.last ?? null);
+  if (newStep) { peeked.clear(); glossOpen = false; }
+  const had = new Set((p?.clues ?? []).map((x) => x.text)), hadW = new Set((p?.words ?? []).map((x) => x.word));
+  const freshClues = new Set(p ? (s.clues ?? []).map((x) => x.text).filter((t) => !had.has(t)) : []);
+  const freshWords = new Set(p ? (s.words ?? []).map((x) => x.word).filter((t) => !hadW.has(t)) : []);
+
+  const typing = document.getElementById("line"), draft = typing?.value ?? "", focused = document.activeElement === typing;
+  app.innerHTML = header(s, sc) + (s.over ? reveal(s, sc) + suspects(s) : suspects(s) + report(s) + (s.interview ? room(s) : "")) + notebook(s, freshClues, freshWords);
+  const line = document.getElementById("line");
+  if (line && !newStep) { line.value = draft; if (focused) line.focus(); }
+
+  const meter = document.getElementById("meter");
+  meter.style.width = (ps ? ps.pct : 0) * 100 + "%";
+  requestAnimationFrame(() => requestAnimationFrame(() => { meter.style.width = sc.pct * 100 + "%"; }));
+  if (newReport && p && !s.over) { document.getElementById("report")?.classList.add("play"); document.getElementById("starchip")?.classList.add("pop"); typewriter(); }
+  if (newStep && p && !s.over) document.getElementById("room")?.classList.add("enter");
+  if (s.over && p && !p.over) sting(!!s.finale?.solved);
+  prev = s;
+}
+
+app.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  const s = snap.state;
+  if (t.id === "speech") { glossOpen = !glossOpen; draw(s); }
+  else if (t.dataset.peek) { peeked.add(Number(t.dataset.peek)); tone([[1600, 0, .05]]); draw(s); }
+  else if (t.id === "hint") snap.action("hint", { step: s.step });
+  else if (t.id === "skip") snap.action("skip", { step: s.step });
+  else if (t.id === "mute") { muted = !muted; draw(s); }
+  else if (t.id === "again") snap.send("Give me a new case, somewhere different.");
+});
+app.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const line = document.getElementById("line"), text = line.value.trim();
+  if (!text) return;
+  snap.send(text); line.value = "";
+});
+snap.onState((s) => draw(s));
+</script>
+</body>
+</html>

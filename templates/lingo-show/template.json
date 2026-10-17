@@ -1,0 +1,15 @@
+{
+  "name": "Lingo Show",
+  "description": "A rapid-fire language game show. A live host fires questions in the language you're learning: four rounds of five, a streak multiplier, double points in the lightning round and a jackpot at the end.",
+  "icon": "🎤",
+  "modes": ["editor"],
+  "tools": [],
+  "model": "haiku",
+  "voice": { "voice": "marin" },
+  "ui": { "html": true },
+  "inputs": [
+    { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese", "Korean", "Mandarin"], "default": "Spanish" },
+    { "id": "level", "label": "Level", "type": "select", "options": ["beginner", "intermediate", "advanced"], "default": "beginner" },
+    { "id": "theme", "label": "Theme (optional)", "type": "text", "placeholder": "food, football, travel, 90s pop…" }
+  ]
+}

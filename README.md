@@ -77,7 +77,10 @@ go through its proxy (below) on the user's credit; without one, `OPENAI_API_KEY`
 `OPENAI_LIVE_BASE` points either side at a stand-in. `SNAP_VOICE_DEBUG=1` logs every sideband event
 but the transcript fragments to the server's output. `templates/lingo` (a spoken language game) is
 the example app; `templates/lingo-live` lets the voice play whole role-play scenes and delegate only
-when a scene ends, so a scene runs at the speed of talk.
+when a scene ends, so a scene runs at the speed of talk. Three more try other ways to keep the voice talking while
+the agent works: `lingo-mystery` (interview suspects, solve a case), `lingo-show` (a game show whose
+host gets five questions and their answers at once) and `lingo-bingo` (free chat with a bingo card
+of things to say, checked every few exchanges).
 
 ## HTML panels
 

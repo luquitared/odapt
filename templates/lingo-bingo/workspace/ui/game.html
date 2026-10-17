@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf3e1; --panel: #fffaf0; --ink: #23172e; --muted: #75697e; --line: #ecdcc2;
+    --sq: #ffffff; --red: #e0383e; --blue: #2457d6; --dab: #e8327c; --gold: #f2b01e; --green: #1b9a6a;
+    --shadow: 0 2px 0 rgba(35,23,46,.08), 0 14px 32px -16px rgba(35,23,46,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #150f1f; --panel: #1f1830; --ink: #f6eedf; --muted: #a79cb5; --line: #352a4a;
+      --sq: #2a2140; --red: #ff5a5f; --blue: #6f95ff; --dab: #ff4f98; --gold: #ffc940; --green: #3fd49b;
+      --shadow: 0 2px 0 rgba(0,0,0,.35), 0 14px 32px -16px rgba(0,0,0,.7); }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 "Rubik", system-ui, sans-serif; }
+  body { padding: 14px 14px 22px; background-image: radial-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1.4px); background-size: 16px 16px; }
+  .wrap { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .bungee { font-family: "Bungee", "Rubik", sans-serif; font-weight: 400; letter-spacing: .02em; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+
+  /* who you're talking to */
+  .who { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+  .face { flex: none; width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 32px; background: color-mix(in srgb, var(--gold) 30%, var(--sq)); border: 2px solid var(--gold); animation: talk 2.6s ease-in-out infinite; }
+  .who .t { min-width: 0; flex: 1; }
+  .who small { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+  .who b { font-size: 18px; }
+  .who .about { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .calls { display: grid; justify-items: end; gap: 4px; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .pips { display: flex; gap: 4px; }
+  .pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
+  .pips i.on { background: var(--blue); border-color: var(--blue); }
+
+  /* the card */
+  .card { padding: 14px; border-radius: 22px; background: var(--red); box-shadow: var(--shadow); position: relative; }
+  .card.blackout { background: var(--ink); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 0 4px 10px; color: #fff; font-size: 22px; }
+  .head small { font: 700 12px "Rubik", sans-serif; text-transform: uppercase; letter-spacing: .1em; opacity: .85; }
+  .card.blackout .head { color: var(--gold); }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .sq { position: relative; aspect-ratio: 1; border-radius: 14px; background: var(--sq); border: 0; padding: 8px 6px; display: grid; align-content: center; justify-items: center; gap: 4px; text-align: center; overflow: hidden; transition: box-shadow .3s, transform .2s; }
+  .sq:hover { transform: translateY(-1px); }
+  .sq .tx { font-weight: 700; font-size: clamp(13px, 3.6vw, 18px); line-height: 1.15; position: relative; z-index: 1; overflow-wrap: anywhere; }
+  .sq .gl { font-size: 11px; color: var(--muted); line-height: 1.2; position: relative; z-index: 1; }
+  .sq .gl.hide { filter: blur(4px); }
+  .sq .kind { position: absolute; top: 6px; left: 7px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .sq.k-skill { background: color-mix(in srgb, var(--blue) 12%, var(--sq)); }
+  .sq.k-skill .kind { color: var(--blue); }
+  .sq.tried::before { content: ""; position: absolute; inset: 10%; border-radius: 50%; border: 3px dashed var(--gold); opacity: .8; }
+  .sq.done::after { content: ""; position: absolute; left: 50%; top: 50%; width: 78%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--dab) 75%, #fff), var(--dab) 70%); opacity: .42; mix-blend-mode: multiply; }
+  @media (prefers-color-scheme: dark) { .sq.done::after { mix-blend-mode: screen; opacity: .45; } }
+  .sq.done.fresh::after { animation: dab .6s cubic-bezier(.3,1.6,.5,1) both; }
+  .sq.inline { box-shadow: 0 0 0 3px var(--gold), 0 0 18px 2px color-mix(in srgb, var(--gold) 70%, transparent); }
+  .banner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-8deg); z-index: 3; padding: 8px 18px; border-radius: 12px; background: var(--gold); color: #23172e; font-size: 30px; box-shadow: var(--shadow); pointer-events: none; animation: banner 1.8s ease both; }
+
+  /* score */
+  .score { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat { padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 26px; line-height: 1; }
+  .stat span { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+  .stat.pop b { animation: pop .5s ease; }
+
+  /* controls */
+  .say { display: flex; gap: 8px; }
+  .say input { flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); }
+  .btn { border-radius: 14px; padding: 11px 16px; font-weight: 700; background: var(--panel); border: 1.5px solid var(--line); }
+  .btn.go { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tip { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  /* lists */
+  .box { padding: 14px 16px; }
+  .box h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .fix { padding: 8px 10px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 0 10px 10px 0; margin-top: 6px; }
+  .fix s { color: var(--muted); }
+  .fix b { color: var(--green); }
+  .fix span { display: block; font-size: 12px; color: var(--muted); }
+  .words { display: flex; flex-wrap: wrap; gap: 6px; }
+  .word { padding: 5px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); font-size: 13px; }
+  .word i { font-style: normal; color: var(--muted); }
+
+  .over { padding: 18px; text-align: center; display: grid; gap: 10px; }
+  .over h2 { margin: 0; font-size: 30px; color: var(--red); }
+  .over .row { justify-content: center; }
+  .waiting { padding: 40px 18px; text-align: center; color: var(--muted); }
+  .waiting .bungee { font-size: 24px; color: var(--ink); }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .confetti i { position: absolute; top: -12px; width: 10px; height: 10px; border-radius: 50%; animation: fall 1.7s ease-in forwards; }
+
+  @keyframes talk { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) scale(1.04); } }
+  @keyframes dab { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 60% { opacity: .8; } 100% { transform: translate(-50%, -50%) scale(1); } }
+  @keyframes banner { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(2.2); } 20% { opacity: 1; transform: translate(-50%, -50%) rotate(-8deg) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes pop { 40% { transform: scale(1.25); } }
+  @keyframes fall { to { transform: translateY(900px); opacity: 0; } }
+  @media (max-width: 420px) { .sq .gl { font-size: 10px; } .head { font-size: 18px; } .sq .kind { font-size: 8px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="panel waiting"><div class="bungee">Shuffling the card…</div><p>Your partner is on their way.</p></div></div>
+<div class="confetti" id="confetti"></div>
+<script>
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const app = document.getElementById("app");
+let prev = null, showGloss = false, ctx = null;
+
+function score(s) {
+  const card = s.card ?? [], done = card.map((q) => !!q?.done);
+  const lines = LINES.filter((l) => l.every((i) => done[i]));
+  const n = done.filter(Boolean).length, blackout = card.length === 9 && n === 9;
+  return { n, lines, inLine: new Set(lines.flat()), blackout, points: n * 10 + lines.length * 30 + (blackout ? 100 : 0) };
+}
+
+function chime(notes) {
+  try {
+    ctx ??= new AudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    notes.forEach(([f, t]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), at = ctx.currentTime + t;
+      o.type = "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.08, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.3);
+      o.connect(g).connect(ctx.destination); o.start(at); o.stop(at + 0.35);
+    });
+  } catch {}
+}
+function confetti() {
+  const box = document.getElementById("confetti"), colors = ["var(--dab)", "var(--gold)", "var(--blue)", "var(--red)"];
+  for (let k = 0; k < 44; k++) {
+    const i = document.createElement("i");
+    i.style.left = Math.random() * 100 + "%"; i.style.background = colors[k % 4]; i.style.animationDelay = Math.random() * .4 + "s";
+    box.append(i); setTimeout(() => i.remove(), 2300);
+  }
+}
+
+function draw(s) {
+  if (!s || !s.card) return;
+  const sc = score(s), p = prev, ps = p ? score(p) : null;
+  const sameCard = p && p.round === s.round && JSON.stringify((p.card ?? []).map((q) => q.t)) === JSON.stringify(s.card.map((q) => q.t));
+  const fresh = new Set(sameCard ? s.card.map((q, i) => q.done && !p.card[i]?.done ? i : -1).filter((i) => i >= 0) : []);
+  const newLine = sameCard && sc.lines.length > ps.lines.length, newBlackout = sameCard && sc.blackout && !ps.blackout;
+  const pt = s.partner ?? {};
+  const typing = document.getElementById("line"), draft = typing?.value ?? "", focused = document.activeElement === typing;
+
+  app.innerHTML = `
+    <section class="panel who">
+      <div class="face" aria-hidden="true">${esc(pt.avatar || "🙂")}</div>
+      <div class="t"><small>Chatting with</small><b>${esc(pt.name)}</b><div class="about">${esc(pt.about)}${s.topic ? ` · ${esc(s.topic)}` : ""}</div></div>
+      <div class="calls">Checks<div class="pips">${Array.from({ length: s.of || 6 }, (_, k) => `<i class="${k < (s.checkpoint || 0) ? "on" : ""}"></i>`).join("")}</div></div>
+    </section>
+    <section class="card ${sc.blackout ? "blackout" : ""}" aria-label="Bingo card">
+      <div class="head bungee"><span>Lingo Bingo</span><small>${esc(s.language)}${s.round > 1 ? ` · card ${esc(s.round)}` : ""}</small></div>
+      <div class="grid">${s.card.map((q, i) => `
+        <button class="sq k-${esc(q.kind)} ${q.done ? "done" : q.tried ? "tried" : ""} ${fresh.has(i) ? "fresh" : ""} ${sc.inLine.has(i) ? "inline" : ""}" data-sq="${i}"
+          aria-label="${esc(q.t)}: ${esc(q.g)}${q.done ? ", marked" : q.tried ? ", tried, not yet right" : ""}">
+          <span class="kind">${q.kind === "skill" ? "★ skill" : esc(q.kind)}</span>
+          <span class="tx">${esc(q.t)}</span><span class="gl ${showGloss || q.kind === "skill" ? "" : "hide"}">${esc(q.g)}</span>
+        </button>`).join("")}</div>
+      ${newBlackout ? `<div class="banner bungee">Blackout!</div>` : newLine ? `<div class="banner bungee">Line!</div>` : ""}
+    </section>
+    <section class="score">
+      <div class="panel stat ${fresh.size ? "pop" : ""}"><b class="bungee">${sc.n}/9</b><span>Squares</span></div>
+      <div class="panel stat ${newLine ? "pop" : ""}"><b class="bungee">${sc.lines.length}</b><span>Lines</span></div>
+      <div class="panel stat ${fresh.size ? "pop" : ""}"><b class="bungee">${sc.points}</b><span>Points</span></div>
+    </section>
+    ${s.over ? `<section class="panel over">
+      <h2 class="bungee">${sc.blackout ? "Blackout!" : "Card done"}</h2>
+      <div>${sc.n} squares, ${sc.lines.length} line${sc.lines.length === 1 ? "" : "s"}, ${sc.points} points with ${esc(pt.name)}.</div>
+      ${(s.review ?? []).length ? `<div style="text-align:left">${s.review.map((r) => typeof r === "string" ? `<div class="fix"><b>${esc(r)}</b></div>`
+        : `<div class="fix"><b>${esc(r.better ?? r.t ?? r.word)}</b>${r.said ? ` <s>${esc(r.said)}</s>` : ""}<span>${esc(r.why ?? r.g ?? r.meaning ?? "")}</span></div>`).join("")}</div>` : ""}
+      <div class="row"><button class="btn go" data-send="New card">🎱 New card</button><button class="btn" data-send="Done for today">Done for today</button></div>
+    </section>` : `<section class="row" style="display:grid;gap:10px">
+      <form class="say" id="say"><input id="line" autocomplete="off" placeholder="Say something in ${esc(s.language)}…" aria-label="Your line"><button class="btn go">Send</button></form>
+      <div class="row">
+        <button class="btn" id="hint">💡 Hint</button>
+        <button class="btn" id="gloss" aria-pressed="${showGloss}">${showGloss ? "Hide" : "Show"} English</button>
+        <span class="tip">🎙️ Press <b>Talk</b> at the top and chat.</span>
+      </div></section>`}
+    ${(s.fixes ?? []).length ? `<section class="panel box"><h3>Quick fixes</h3>${s.fixes.map((f) => `<div class="fix"><s>${esc(f.said)}</s> → <b>${esc(f.better)}</b>${f.why ? `<span>${esc(f.why)}</span>` : ""}</div>`).join("")}</section>` : ""}
+    ${(s.words ?? []).length ? `<section class="panel box"><h3>Phrasebook · ${s.words.length}</h3><div class="words">${s.words.map((w) => `<span class="word">${esc(w.word)} <i>${esc(w.meaning)}</i></span>`).join("")}</div></section>` : ""}`;
+
+  const line = document.getElementById("line");
+  if (line && sameCard) { line.value = draft; if (focused) line.focus(); }
+  if (fresh.size) chime([[660, 0], [880, .08]]);
+  if (newLine) chime([[523, .2], [659, .3], [784, .4], [1047, .5]]);
+  if (newBlackout) { confetti(); setTimeout(confetti, 600); chime([[523, .2], [659, .3], [784, .4], [1047, .5], [1319, .65]]); }
+  else if (newLine) confetti();
+  prev = s;
+}
+
+app.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.id === "hint") snap.action("hint", {});
+  else if (t.id === "gloss") { showGloss = !showGloss; draw(snap.state); }
+  else if (t.dataset.send) snap.send(t.dataset.send);
+  else if (t.dataset.sq) { const g = t.querySelector(".gl"); g?.classList.toggle("hide"); }
+});
+app.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const line = document.getElementById("line"), text = line.value.trim();
+  if (text) { snap.send(text); line.value = ""; }
+});
+snap.onState((s) => draw(s));
+</script>
+</body>
+</html>

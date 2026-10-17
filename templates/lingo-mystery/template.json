@@ -1,0 +1,15 @@
+{
+  "name": "Lingo Mystery",
+  "description": "A detective game in the language you're learning. Interview three suspects out loud, ask the right questions to earn clues, then name the culprit and say why.",
+  "icon": "🔎",
+  "modes": ["editor"],
+  "tools": [],
+  "model": "haiku",
+  "voice": { "voice": "marin" },
+  "ui": { "html": true },
+  "inputs": [
+    { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese", "Korean", "Mandarin"], "default": "Spanish" },
+    { "id": "level", "label": "Level", "type": "select", "options": ["beginner", "intermediate", "advanced"], "default": "beginner" },
+    { "id": "setting", "label": "The scene of the crime (optional)", "type": "text", "placeholder": "a bakery in Lyon, a night train to Venice, a football club…" }
+  ]
+}

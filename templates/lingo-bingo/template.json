@@ -1,0 +1,15 @@
+{
+  "name": "Lingo Bingo",
+  "description": "Just talk. Chat with a curious new friend in the language you're learning while a bingo card of words and phrases waits to be slipped into the conversation. Get a line, then go for blackout.",
+  "icon": "🎱",
+  "modes": ["editor"],
+  "tools": [],
+  "model": "haiku",
+  "voice": { "voice": "marin" },
+  "ui": { "html": true },
+  "inputs": [
+    { "id": "language", "label": "Language", "type": "select", "options": ["Spanish", "French", "Italian", "Portuguese", "German", "Japanese", "Korean", "Mandarin"], "default": "Spanish" },
+    { "id": "level", "label": "Level", "type": "select", "options": ["beginner", "intermediate", "advanced"], "default": "beginner" },
+    { "id": "topic", "label": "Talk about (optional)", "type": "text", "placeholder": "your weekend, food, music, your job…" }
+  ]
+}

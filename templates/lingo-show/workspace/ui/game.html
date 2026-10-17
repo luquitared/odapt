@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff4ea; --stage: #ffffff; --ink: #24133f; --muted: #7a6a8c; --line: #ecdcf0;
+    --hot: #e5257d; --gold: #f0a417; --ok: #12a37a; --bad: #e0453a; --glow: #7b3cf0;
+    --board: #24133f; --board-ink: #ffd75e;
+    --shadow: 0 1px 0 rgba(36,19,63,.06), 0 14px 30px -14px rgba(36,19,63,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #120a24; --stage: #1d1238; --ink: #f6eefe; --muted: #a897c4; --line: #33255a;
+      --hot: #ff4f9f; --gold: #ffc53d; --ok: #2fd39e; --bad: #ff6b5e; --glow: #a274ff;
+      --board: #07040f; --board-ink: #ffd75e;
+      --shadow: 0 1px 0 rgba(0,0,0,.4), 0 16px 34px -14px rgba(0,0,0,.8); }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 "DM Sans", system-ui, sans-serif; }
+  body { padding: 14px 14px 22px; background-image: radial-gradient(ellipse 60% 220px at 20% 0, color-mix(in srgb, var(--glow) 18%, transparent), transparent), radial-gradient(ellipse 60% 220px at 80% 0, color-mix(in srgb, var(--hot) 14%, transparent), transparent); }
+  .wrap { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
+  .bungee { font-family: "Bungee", system-ui, sans-serif; font-weight: 400; letter-spacing: .02em; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--glow); outline-offset: 2px; }
+  .card { background: var(--stage); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+
+  /* marquee */
+  .marquee { position: relative; padding: 14px 16px 12px; text-align: center; border-radius: 20px; background: var(--board); color: var(--board-ink); overflow: hidden; }
+  .marquee::before, .marquee::after { content: ""; position: absolute; left: 10px; right: 10px; height: 6px; background: radial-gradient(circle, var(--gold) 2.2px, transparent 3px) 0 0 / 16px 6px repeat-x; animation: chase 1.2s steps(2) infinite; }
+  .marquee::before { top: 5px; } .marquee::after { bottom: 5px; animation-delay: .6s; }
+  .marquee h1 { margin: 4px 0 0; font-size: clamp(26px, 7vw, 40px); line-height: 1.05; text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 60%, transparent); }
+  .marquee small { display: block; margin-top: 4px; font: 700 11px "DM Sans", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--board-ink) 70%, #fff); }
+
+  /* scoreboard */
+  .score { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; }
+  .points { font-family: "Bungee", sans-serif; font-size: clamp(40px, 12vw, 64px); line-height: 1; color: var(--hot); font-variant-numeric: tabular-nums; }
+  .points.pop { animation: pop .6s ease; }
+  .score .lbl { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .mult { display: grid; justify-items: center; gap: 4px; }
+  .mult .x { font-family: "Bungee", sans-serif; font-size: 30px; line-height: 1; padding: 8px 12px; border-radius: 14px; background: var(--line); color: var(--muted); transition: background .3s, color .3s; }
+  .mult.on .x { background: linear-gradient(135deg, var(--gold), var(--hot)); color: #fff; animation: throb 1.4s ease-in-out infinite; }
+  .streak { display: flex; gap: 3px; }
+  .streak i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .streak i.on { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
+  /* round card */
+  .round { padding: 16px; display: grid; gap: 14px; text-align: center; position: relative; overflow: hidden; }
+  .round.enter { animation: drop .6s cubic-bezier(.2,.9,.3,1.2); }
+  .round .top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .onair { color: #fff; background: var(--bad); padding: 3px 8px; border-radius: 6px; animation: blink 1.4s infinite; }
+  .double { color: #fff; background: linear-gradient(135deg, var(--gold), var(--hot)); padding: 3px 8px; border-radius: 6px; }
+  .round .icon { font-size: 44px; line-height: 1; }
+  .round h2 { margin: 0; font-size: clamp(22px, 6vw, 32px); line-height: 1.1; }
+  .round .fmt { color: var(--hot); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
+  .lights { display: flex; justify-content: center; gap: clamp(6px, 2.4vw, 14px); }
+  .light { position: relative; width: clamp(48px, 14vw, 64px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-family: "Bungee", sans-serif; font-size: clamp(18px, 5vw, 24px); background: var(--bg); border: 3px solid var(--line); color: var(--muted); transition: background .3s, border-color .3s; }
+  .light.now { border-color: var(--gold); color: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 30%, transparent), 0 0 18px var(--gold); }
+  .light.live { animation: wait 1.6s ease-in-out infinite; }
+  .light.ok { background: var(--ok); border-color: var(--ok); color: #fff; box-shadow: 0 0 16px color-mix(in srgb, var(--ok) 70%, transparent); }
+  .light.no { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .light.flip { animation: flip .5s ease both; }
+  .light .jp { position: absolute; top: -10px; right: -8px; font-size: 18px; font-family: system-ui; }
+  .hintline { color: var(--muted); font-size: 13px; }
+
+  /* fix strip */
+  .fix { padding: 14px 16px; display: grid; gap: 8px; }
+  .fix.play { animation: rise .45s ease; }
+  .quip { font-weight: 800; font-size: 17px; }
+  .fx { display: grid; gap: 2px; padding: 8px 10px; border-left: 3px solid var(--hot); background: color-mix(in srgb, var(--hot) 8%, transparent); border-radius: 0 10px 10px 0; }
+  .fx .q { font-size: 12px; color: var(--muted); }
+  .fx s { color: var(--muted); }
+  .fx b { color: var(--ok); }
+  .clean { color: var(--ok); font-weight: 800; }
+
+  /* past rounds */
+  .past { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .pr { padding: 8px; text-align: center; border-radius: 14px; border: 1px solid var(--line); background: var(--stage); display: grid; gap: 4px; }
+  .pr.now { border-color: var(--hot); }
+  .pr .ic { font-size: 20px; line-height: 1; }
+  .pr .n { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr .dots { display: flex; justify-content: center; gap: 3px; }
+  .pr .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+  .pr .dots i.ok { background: var(--ok); } .pr .dots i.no { background: var(--bad); }
+  .pr .p { font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* controls */
+  .say { display: flex; gap: 8px; }
+  .say input { flex: 1; min-width: 0; font: inherit; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--stage); color: var(--ink); }
+  .btn { border-radius: 14px; padding: 12px 16px; font-weight: 800; background: var(--stage); border: 1.5px solid var(--line); }
+  .btn.go { background: var(--hot); color: #fff; border-color: var(--hot); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row .tip { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .bank { padding: 14px 16px; }
+  .bank h3, .review h3 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+  .words { display: flex; flex-wrap: wrap; gap: 6px; }
+  .word { padding: 5px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); font-size: 13px; }
+  .word.new { animation: pop .6s ease; border-color: var(--hot); }
+  .word i { font-style: normal; color: var(--muted); }
+
+  /* finale */
+  .finale { padding: 22px 16px; text-align: center; display: grid; gap: 12px; background: radial-gradient(circle at 50% 0, color-mix(in srgb, var(--gold) 28%, transparent), transparent 60%), var(--stage); }
+  .finale .big { font-family: "Bungee", sans-serif; font-size: clamp(48px, 15vw, 80px); line-height: 1; color: var(--hot); }
+  .facts { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .fact { padding: 6px 12px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); font-weight: 700; font-size: 13px; }
+  .review { text-align: left; display: grid; gap: 6px; }
+
+  .waiting { padding: 40px 18px; text-align: center; color: var(--muted); }
+  .waiting .bungee { font-size: 24px; color: var(--ink); }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .confetti i { position: absolute; top: -12px; width: 8px; height: 12px; border-radius: 2px; animation: fall 1.6s ease-in forwards; }
+
+  @keyframes chase { 50% { background-position: 8px 0; } }
+  @keyframes blink { 50% { opacity: .55; } }
+  @keyframes throb { 50% { transform: scale(1.08); } }
+  @keyframes wait { 50% { border-color: var(--glow); } }
+  @keyframes flip { 0% { transform: rotateY(90deg) scale(.8); } 100% { transform: none; } }
+  @keyframes drop { from { opacity: 0; transform: translateY(-24px) scale(.96); } to { opacity: 1; transform: none; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { 40% { transform: scale(1.14); } }
+  @keyframes fall { to { transform: translateY(900px) rotate(540deg); opacity: 0; } }
+  @media (max-width: 420px) { .past { grid-template-columns: repeat(2, 1fr); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="card waiting"><div class="bungee">Warming up the studio…</div><p>Your show is being written.</p></div></div>
+<div class="confetti" id="confetti"></div>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const app = document.getElementById("app");
+let prev = null, shown = 0, muted = false, ctx = null;
+
+// Points: 100 a right answer, ×2 from three in a row, ×3 from six; double rounds double it; the
+// last round's fifth question is the jackpot (+1000).
+const multOf = (streak) => streak >= 6 ? 3 : streak >= 3 ? 2 : 1;
+function tally(s) {
+  let total = 0, streak = 0, best = 0, right = 0, asked = 0, jackpot = null;
+  const per = (s.rounds ?? []).map((r, ri) => {
+    let pts = 0;
+    (r.results ?? []).forEach((ok, qi) => {
+      asked++;
+      const isJackpot = ri === (s.rounds.length - 1) && qi === 4;
+      if (ok) { streak++; right++; best = Math.max(best, streak); pts += 100 * multOf(streak) * (r.double ? 2 : 1) + (isJackpot ? 1000 : 0); }
+      else streak = 0;
+      if (isJackpot) jackpot = !!ok;
+    });
+    total += pts;
+    return pts;
+  });
+  return { total, streak, best, right, asked, per, mult: multOf(streak + 1), jackpot };
+}
+
+function beep(notes) {
+  if (muted) return;
+  try {
+    ctx ??= new AudioContext();
+    if (ctx.state === "suspended") ctx.resume();
+    for (const [f, t, type = "square"] of notes) {
+      const o = ctx.createOscillator(), g = ctx.createGain(), at = ctx.currentTime + t;
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(0.09, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
+      o.connect(g).connect(ctx.destination); o.start(at); o.stop(at + 0.3);
+    }
+  } catch {}
+}
+const DING = [[880, 0], [1320, .1]], BUZZ = [[140, 0, "sawtooth"], [120, .12, "sawtooth"]];
+const FANFARE = [[523, 0], [659, .12], [784, .24], [1047, .36], [784, .5], [1047, .62]];
+
+function confetti() {
+  const box = document.getElementById("confetti"), colors = ["var(--hot)", "var(--gold)", "var(--ok)", "var(--glow)"];
+  for (let k = 0; k < 50; k++) {
+    const i = document.createElement("i");
+    i.style.left = Math.random() * 100 + "%"; i.style.background = colors[k % 4];
+    i.style.animationDelay = Math.random() * .5 + "s";
+    box.append(i); setTimeout(() => i.remove(), 2400);
+  }
+}
+
+// The score counts up from what was last shown.
+function countUp(el, to) {
+  const from = shown, t0 = performance.now(), dur = 900;
+  shown = to;
+  if (from === to) { el.textContent = to.toLocaleString(); return; }
+  el.classList.add("pop");
+  const step = (t) => {
+    const k = Math.min(1, (t - t0) / dur), v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+    el.textContent = v.toLocaleString();
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function marquee(s) {
+  return `<header class="marquee"><h1 class="bungee">${esc(s.show || "Lingo Show")}</h1>
+    <small>${esc(s.language)} · ${s.over ? "the finale" : `round ${esc(s.round)} of ${esc(s.of)}`}</small></header>`;
+}
+
+function scoreboard(t) {
+  const on = t.mult > 1;
+  return `<section class="card score" aria-live="polite">
+    <div><div class="lbl">Score</div><div class="points" id="points">${shown.toLocaleString()}</div></div>
+    <div class="mult ${on ? "on" : ""}" title="Next right answer's multiplier"><div class="x">×${t.mult}</div>
+      <div class="streak" aria-label="Streak ${t.streak}">${Array.from({ length: 6 }, (_, k) => `<i class="${k < t.streak ? "on" : ""}"></i>`).join("")}</div>
+      <div class="lbl">${t.streak ? `${t.streak} in a row` : "streak"}</div></div>
+  </section>`;
+}
+
+function roundCard(s, fresh) {
+  const ri = s.round - 1, r = s.rounds?.[ri];
+  if (!r) return "";
+  const res = r.results ?? [], last = ri === s.rounds.length - 1, live = s.current == null && res.length < 5;
+  return `<section class="card round" id="round">
+    <div class="top"><span>Round ${esc(s.round)}</span>${r.double ? `<span class="double">Double points</span>` : ""}${live ? `<span class="onair">● On air</span>` : ""}</div>
+    <div class="icon" aria-hidden="true">${esc(r.icon || "🎤")}</div>
+    <div class="fmt">${esc(r.format)}</div>
+    <h2 class="bungee">${esc(r.title)}</h2>
+    <div class="lights">${[0, 1, 2, 3, 4].map((q) => {
+      const v = res[q], cls = v === true ? "ok" : v === false ? "no" : s.current === q ? "now" : live ? "live" : "";
+      return `<div class="light ${cls} ${fresh.has(q) ? "flip" : ""}" style="animation-delay:${fresh.has(q) ? q * .15 : q * .2}s" aria-label="Question ${q + 1}${v === true ? ", right" : v === false ? ", wrong" : ""}">${v === true ? "✓" : v === false ? "✕" : q + 1}${last && q === 4 ? `<span class="jp" title="Jackpot">💰</span>` : ""}</div>`;
+    }).join("")}</div>
+    <div class="hintline">${live ? "🎙️ Press <b>Talk</b> at the top. The host asks, you answer out loud." : s.current != null ? "Type your answer below." : ""}</div>
+  </section>`;
+}
+
+function fixStrip(l, play) {
+  if (!l) return "";
+  const fx = (l.fixes ?? []).map((f) => `<div class="fx"><span class="q">${esc(f.q)}</span><div>${f.said ? `<s>${esc(f.said)}</s> → ` : ""}<b>${esc(f.answer)}</b></div></div>`).join("");
+  return `<section class="card fix ${play ? "play" : ""}"><div class="quip">${esc(l.quip)}</div>${fx || `<div class="clean">A clean sweep.</div>`}</section>`;
+}
+
+function pastRounds(s, t) {
+  return `<section class="past">${(s.rounds ?? []).map((r, k) => `<div class="pr ${!s.over && k + 1 === s.round ? "now" : ""}">
+    <div class="ic">${esc(r.icon)}</div><div class="n">${esc(r.format)}</div>
+    <div class="dots">${[0, 1, 2, 3, 4].map((q) => `<i class="${r.results?.[q] === true ? "ok" : r.results?.[q] === false ? "no" : ""}"></i>`).join("")}</div>
+    <div class="p">${(r.results ?? []).length ? t.per[k].toLocaleString() : "—"}</div></div>`).join("")}</section>`;
+}
+
+function controls() {
+  return `<section class="row" style="display:grid;gap:10px">
+    <form class="say" id="say"><input id="line" autocomplete="off" placeholder="Type your answer…" aria-label="Your answer"><button class="btn go">Answer</button></form>
+    <div class="row"><button class="btn" id="skip">Skip question</button><button class="btn" id="mute" aria-pressed="${muted}">${muted ? "🔇" : "🔊"}</button></div>
+  </section>`;
+}
+
+function finale(s, t) {
+  return `<section class="card finale">
+    <div class="bungee" style="font-size:14px;letter-spacing:.14em;color:var(--muted)">Final score</div>
+    <div class="big" id="points">${shown.toLocaleString()}</div>
+    <div class="facts"><span class="fact">✓ ${t.right} of ${t.asked}</span><span class="fact">🔥 best streak ${t.best}</span><span class="fact">${t.jackpot ? "💰 jackpot won" : "💰 jackpot missed"}</span></div>
+    ${(s.review ?? []).length ? `<div class="review"><h3>Take these home</h3>${s.review.map((r) => typeof r === "string" ? `<div class="fx"><b>${esc(r)}</b></div>`
+      : `<div class="fx"><span class="q">${esc(r.q ?? r.meaning ?? "")}</span><div><b>${esc(r.answer ?? r.word)}</b>${r.said ? ` <s>${esc(r.said)}</s>` : ""}</div></div>`).join("")}</div>` : ""}
+    <div class="row" style="justify-content:center"><button class="btn go" id="again">🎤 Play again</button></div>
+  </section>`;
+}
+
+function bank(s, fresh) {
+  const w = s.words ?? [];
+  if (!w.length) return "";
+  return `<section class="card bank"><h3>Your words · ${w.length}</h3><div class="words">${w.map((x) =>
+    `<span class="word ${fresh.has(x.word) ? "new" : ""}">${esc(x.word)} <i>${esc(x.meaning)}</i></span>`).join("")}</div></section>`;
+}
+
+function draw(s) {
+  if (!s || !s.rounds) return;
+  const t = tally(s), p = prev;
+  const ri = s.round - 1, before = p?.rounds?.[ri]?.results ?? [], now = s.rounds[ri]?.results ?? [];
+  // Lights that just got a verdict flip in; only animate on a change, not the first load.
+  const freshQ = new Set(p && p.round === s.round ? now.map((_, q) => q).filter((q) => q >= before.length) : []);
+  const newRound = p && (p.round !== s.round || p.over !== s.over);
+  const newLast = p && s.last && JSON.stringify(s.last) !== JSON.stringify(p.last ?? null);
+  const oldWords = new Set((p?.words ?? []).map((x) => x.word));
+  const freshW = new Set(p ? (s.words ?? []).filter((x) => !oldWords.has(x.word)).map((x) => x.word) : []);
+  if (!p) shown = t.total;
+
+  const typing = document.getElementById("line"), draft = typing?.value ?? "", focused = document.activeElement === typing;
+  app.innerHTML = marquee(s) + (s.over ? finale(s, t) : scoreboard(t) + roundCard(s, freshQ) + fixStrip(s.last, newLast) + controls()) + pastRounds(s, t) + bank(s, freshW);
+  const line = document.getElementById("line");
+  if (line) { line.value = draft; if (focused) line.focus(); }
+  countUp(document.getElementById("points"), t.total);
+
+  if (newRound && !s.over) document.getElementById("round")?.classList.add("enter");
+  // Sounds for the newest verdicts: a ding per right answer, a buzz per miss.
+  const gained = p ? t.right - tally(p).right : 0, lost = p ? t.asked - tally(p).asked - gained : 0;
+  if (gained > 0 || lost > 0) beep([...(gained ? DING : []), ...(lost ? BUZZ.map(([f, d, ty]) => [f, d + (gained ? .3 : 0), ty]) : [])]);
+  if (p && newLast && (s.last.fixes ?? []).length === 0) confetti();
+  if (s.over && p && !p.over) { confetti(); setTimeout(confetti, 600); beep(FANFARE); }
+  prev = s;
+}
+
+app.addEventListener("click", (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.id === "skip") snap.action("skip", { round: snap.state?.round });
+  else if (t.id === "mute") { muted = !muted; draw(snap.state); }
+  else if (t.id === "again") snap.send("Let's play again: a new show.");
+});
+app.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const line = document.getElementById("line"), text = line.value.trim();
+  if (!text) return;
+  snap.send(text); line.value = "";
+});
+snap.onState((s) => draw(s));
+</script>
+</body>
+</html>
