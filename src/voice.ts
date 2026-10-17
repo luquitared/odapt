@@ -24,6 +24,7 @@ export const LIVE_MODEL = "gpt-live-1";
 // session bills 15 seconds up front, credited against the running time, so 15s is the minimum.
 export const LIVE_USD_PER_MIN = 0.05;
 export const LIVE_MIN_SECONDS = 15;
+const GREETING = "The call has just started and the person can hear you; they already pressed Talk, so never tell them to. Greet them now, briefly. If your instructions say what to do when the call starts, do that. Otherwise, if the page is waiting on them, tell them what for. Then pause and listen.";
 export const liveCost = (seconds: number) => (Math.max(seconds, LIVE_MIN_SECONDS) / 60) * LIVE_USD_PER_MIN;
 
 // Context appends take at most 500 tokens each.
@@ -95,7 +96,9 @@ export function liveSession(s: Session, t: Template, events: LogEvent[]) {
   return {
     model: LIVE_MODEL,
     instructions,
-    input: history(events),
+    // The opening line goes in at creation: an instruction appended once the call is running is
+    // acknowledged but doesn't make GPT-Live speak first.
+    input: [...history(events), { type: "message", role: "developer", content: [{ type: "input_text", text: GREETING }] }],
     audio: { output: { voice: t.voice?.voice ?? "marin" } },
     delegation: { type: "client" },
     client: { data_channel: { allowed_client_events: BROWSER_EVENTS, allowed_server_events: [{ type: "session.started" }, { type: "session.closed" }, { type: "error" }] } },
@@ -308,8 +311,6 @@ export async function startCall(
   const off = hooks.subscribe((e) => bridge.logged(e));
   ws.addEventListener("open", () => {
     for (const s of queue.splice(0)) ws.send(s);
-    // Created over WebRTC, the session is already running: open the conversation.
-    send({ type: "session.instructions.append", delegation_id: null, content: "Greet the person now, briefly. If the page is waiting on them, tell them what for. Then listen." });
   });
   ws.addEventListener("message", (m) => {
     try {

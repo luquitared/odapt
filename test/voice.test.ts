@@ -128,7 +128,9 @@ describe("voice session config", () => {
     expect(cfg.instructions).toContain("You are the voice of Lingo");
     expect(cfg.instructions).toContain("a language game in French");
     expect(cfg.instructions).toContain("- Round 1: Bonjour");
-    expect(cfg.input.map((m) => [m.role, m.content[0].text])).toEqual([["assistant", "Welcome!"], ["user", "salut"]]);
+    expect(cfg.input.slice(0, -1).map((m) => [m.role, m.content[0].text])).toEqual([["assistant", "Welcome!"], ["user", "salut"]]);
+    // The greeting is a developer message at creation; one appended after the start is ignored.
+    expect(cfg.input.at(-1)).toMatchObject({ role: "developer", content: [{ type: "input_text", text: expect.stringContaining("Greet the person now") }] });
     expect(cfg.client.data_channel.allowed_client_events).toEqual(["session.close", "session.input_audio.mute", "session.input_audio.unmute"]);
     expect(pageSummary({ ...s, panels: {} })).toBe("- Nothing yet.");
   });
