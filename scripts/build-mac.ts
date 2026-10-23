@@ -3,6 +3,9 @@
 //   bun run build-mac [--apps app-ad,name-lab] [--out dist/mac]
 //   bun run build-mac --apps my-app --name "My App" --port 7795
 //
+// --min-macos 12.0 lowers the macOS the app asks for below Bun's own (13.0): the compiled binary's
+// LC_BUILD_VERSION is rewritten and it is re-signed ad hoc. Only versions tested in a VM belong here.
+//
 // --name builds a branded app for one customer: <name>.app, its own bundle id, its own data folder
 // (~/Library/Application Support/<name>) and port, and it opens on the first app's new-session page.
 // The branding is Contents/Resources/brand.json, which src/main.ts reads.
@@ -47,7 +50,15 @@ mkdirSync(join(app, "Contents/MacOS"), { recursive: true });
 mkdirSync(res, { recursive: true });
 
 console.log("compiling src/main.ts");
-await sh(["bun", "build", "--compile", "src/main.ts", "--outfile", join(app, "Contents/MacOS/odapt")]);
+const bin = join(app, "Contents/MacOS/odapt");
+await sh(["bun", "build", "--compile", "src/main.ts", "--outfile", bin]);
+const minMacos = arg("--min-macos", "13.0");
+if (minMacos !== "13.0") {
+  const sdk = (await new Response(Bun.spawn(["otool", "-l", bin]).stdout).text()).match(/LC_BUILD_VERSION[\s\S]*?sdk (\S+)/)?.[1] ?? fail("no LC_BUILD_VERSION in the binary");
+  await sh(["xcrun", "vtool", "-set-build-version", "macos", minMacos, sdk, "-replace", "-output", bin, bin]);
+  await sh(["codesign", "-f", "-s", "-", bin]);
+  console.log(`odapt: minimum macOS ${minMacos}`);
+}
 
 for (const p of ["ui", "prompts", "tools", "harnesses.json"]) cpSync(join(ROOT, p), join(res, p), { recursive: true });
 if (brand) writeFileSync(join(res, "brand.json"), JSON.stringify(brand, null, 2) + "\n");
@@ -100,7 +111,7 @@ writeFileSync(join(app, "Contents/Info.plist"), `<?xml version="1.0" encoding="U
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${version}</string>
   <key>CFBundleVersion</key><string>${version}</string>
-  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>LSMinimumSystemVersion</key><string>${minMacos}</string>
   <key>LSUIElement</key><true/>
 </dict>
 </plist>
