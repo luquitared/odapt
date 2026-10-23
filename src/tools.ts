@@ -153,6 +153,9 @@ export function seedStore(from: string, log: (s: string) => void = console.log) 
     rmSync(dest, { recursive: true, force: true });
     mkdirSync(join(dest, ".."), { recursive: true });
     cpSync(join(from, name, version), dest, { recursive: true });
+    // A downloaded app's files carry quarantine, and copies out of the bundle keep it; the person already
+    // approved the app they came from, and macOS would refuse to run them from the store.
+    if (process.platform === "darwin") Bun.spawnSync(["/usr/bin/xattr", "-dr", "com.apple.quarantine", dest]);
     log(`  ${name} ${version} → ${dest} (from the app)`);
   }
 }

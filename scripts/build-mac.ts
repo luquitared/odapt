@@ -6,6 +6,8 @@
 // --min-macos 12.0 lowers the macOS the app asks for below Bun's own (13.0): the compiled binary's
 // LC_BUILD_VERSION is rewritten and it is re-signed ad hoc. Only versions tested in a VM belong here.
 //
+// --dmg also writes <name>-<version>.dmg next to the app: the app and a link to /Applications.
+//
 // --name builds a branded app for one customer: <name>.app, its own bundle id, its own data folder
 // (~/Library/Application Support/<name>) and port, and it opens on the first app's new-session page.
 // The branding is Contents/Resources/brand.json, which src/main.ts reads.
@@ -117,5 +119,19 @@ writeFileSync(join(app, "Contents/Info.plist"), `<?xml version="1.0" encoding="U
 </plist>
 `);
 
+// Ad hoc: no identity yet, but a whole bundle sealed. With only the binary signed, macOS 12 holds a
+// downloaded app suspended at launch, without a dialog. Not --deep: Codex and ffmpeg keep their own signatures.
+await sh(["codesign", "--force", "--sign", "-", app]);
+await sh(["codesign", "--verify", "--strict", app]);
 const size = (await new Response(Bun.spawn(["du", "-sh", app]).stdout).text()).split("\t")[0];
 console.log(`\n${app} (${size})`);
+if (process.argv.includes("--dmg")) {
+  const stage = join(dirname(app), ".dmg-stage"), dmg = join(dirname(app), `${name.replace(/ /g, "-")}-${version}.dmg`);
+  rmSync(stage, { recursive: true, force: true });
+  mkdirSync(stage);
+  await sh(["ditto", app, join(stage, `${name}.app`)]);
+  await sh(["ln", "-s", "/Applications", join(stage, "Applications")]);
+  await sh(["hdiutil", "create", "-quiet", "-ov", "-volname", name, "-srcfolder", stage, "-format", "UDZO", dmg]);
+  rmSync(stage, { recursive: true, force: true });
+  console.log(dmg);
+}
