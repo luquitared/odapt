@@ -8,6 +8,8 @@ export interface Pricing {
   markup: number; // retail = provider cost × markup
   grant_usd: number; // free credit on a user's first sign-in to this app
   packs: { id: string; label: string; usd: number }[];
+  // OpenRouter routing for this app's calls, sent as the request's `provider` (e.g. {"zdr": true}).
+  openrouter_provider?: Record<string, unknown>;
 }
 
 export function pricing(app: string): Pricing | null {

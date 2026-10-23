@@ -24,14 +24,14 @@ export async function proxy(sql: Db, req: Request, user: { id: string }, app: st
   if ((await spentToday(sql)) >= DAILY_CAP_USD) return json({ error: "Odapt is at today's capacity. Try again tomorrow." }, 503);
   const bal = await balance(sql, user.id);
   if (bal < MIN_BALANCE_USD) return json({ error: "out of credits", balance: bal }, 402);
-  const ctx = { sql, user, app, markup: p.markup, balance: bal };
+  const ctx = { sql, user, app, markup: p.markup, balance: bal, route: p.openrouter_provider };
   if (upstream === "openrouter") return openrouter(ctx, req, rest);
   if (upstream === "replicate") return replicate(ctx, req, rest);
   if (upstream === "openai") return createLive(sql, req, ctx, rest);
   return json({ error: `unknown upstream "${upstream}"` }, 404);
 }
 
-interface Ctx { sql: Db; user: { id: string }; app: string; markup: number; balance: number }
+interface Ctx { sql: Db; user: { id: string }; app: string; markup: number; balance: number; route?: Record<string, unknown> }
 
 function forwardHeaders(req: Request, key: string) {
   const h = new Headers();
@@ -74,10 +74,20 @@ export async function usageCost(obj: any, fallbackModel: string | null): Promise
   return { id, usd: (input - cached) * price.in + cached * price.cached + output * price.out };
 }
 
+// The app's routing (pricing.json `openrouter_provider`) wins over what the client asked for.
+export function routed(body: string, route?: Record<string, unknown>): string {
+  if (!route) return body;
+  const b = JSON.parse(body);
+  return JSON.stringify({ ...b, provider: { ...b.provider, ...route } });
+}
+
 async function openrouter(c: Ctx, req: Request, rest: string): Promise<Response> {
-  const body = req.method === "GET" || req.method === "HEAD" ? undefined : await req.text();
+  let body = req.method === "GET" || req.method === "HEAD" ? undefined : await req.text();
   let model: string | null = null;
   try { model = body ? JSON.parse(body).model ?? null : null; } catch {}
+  if (body && c.route) {
+    try { body = routed(body, c.route); } catch { return json({ error: "body must be JSON" }, 400); }
+  }
   const up = await fetch(`${OPENROUTER}/${rest}`, { method: req.method, headers: forwardHeaders(req, OPENROUTER_API_KEY), body });
   const charge = async (obj: any) => {
     const u = await usageCost(obj, model).catch(() => null);

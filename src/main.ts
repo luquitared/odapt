@@ -22,9 +22,14 @@ if (cmd === "runner") {
 
 async function app() {
   const { existsSync, mkdirSync, readFileSync } = await import("node:fs");
-  const { join } = await import("node:path");
+  const { dirname, join } = await import("node:path");
+  const { homedir } = await import("node:os");
+  // A branded build (build-mac --name) has its own data folder and port, so it runs beside Odapt.app.
+  const brandFile = join(dirname(process.execPath), "../Resources/brand.json");
+  const brand = existsSync(brandFile) ? JSON.parse(readFileSync(brandFile, "utf8")) as { name: string; port: number; open?: string } : null;
+  if (brand) process.env.SNAP_DATA_DIR ??= join(homedir(), "Library/Application Support", brand.name);
   // Not 7788, so the app and a dev server from the repo can run side by side.
-  process.env.SNAP_PORT ??= "7789";
+  process.env.SNAP_PORT ??= String(brand?.port ?? 7789);
   // Nothing but the app and the OS: every tool comes from the store (src/tools.ts).
   process.env.SNAP_TOOLS_STRICT ??= "1";
   const { DATA_DIR, PORT, ROOT } = await import("./config");
@@ -43,7 +48,7 @@ async function app() {
   if (existsSync(codex)) process.env.SNAP_CODEX_BIN ??= codex;
 
   const url = `http://127.0.0.1:${PORT}`;
-  const open = () => { if (process.env.SNAP_NO_OPEN !== "1") Bun.spawn(["/usr/bin/open", url]); };
+  const open = () => { if (process.env.SNAP_NO_OPEN !== "1") Bun.spawn(["/usr/bin/open", url + (brand?.open ?? "")]); };
   // Opened again while running: just show it.
   if (await fetch(`${url}/api/health`, { signal: AbortSignal.timeout(1000) }).then((r) => r.ok, () => false)) return open();
 

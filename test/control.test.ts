@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createTarget, estimate, usageCost } from "../control/proxy";
+import { createTarget, estimate, routed, usageCost } from "../control/proxy";
 import { checkoutError } from "../control/orders";
 import type { App } from "../control/apps";
 import { form, verifySignature } from "../control/stripe";
@@ -62,5 +62,13 @@ describe("openrouter usage", () => {
       .toEqual({ id: "gen-1", usd: 0.0012 });
     expect(await usageCost({ id: "gen-2", usage: { cost: 0.5, prompt_tokens: 9 } }, null)).toEqual({ id: "gen-2", usd: 0.5 });
     expect(await usageCost({ type: "response.output_text.delta" }, null)).toBeNull();
+  });
+});
+
+describe("openrouter routing", () => {
+  test("the app's provider preferences override the client's", () => {
+    const body = JSON.stringify({ model: "m", input: "hi", provider: { zdr: false, sort: "price" } });
+    expect(JSON.parse(routed(body, { zdr: true }))).toEqual({ model: "m", input: "hi", provider: { zdr: true, sort: "price" } });
+    expect(routed(body, undefined)).toBe(body);
   });
 });

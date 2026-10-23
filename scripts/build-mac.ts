@@ -1,6 +1,11 @@
 // Build an unsigned Odapt.app (issue #8): the runtime and the apps it carries, nothing else needed.
 //
 //   bun run build-mac [--apps app-ad,name-lab] [--out dist/mac]
+//   bun run build-mac --apps my-app --name "My App" --port 7795
+//
+// --name builds a branded app for one customer: <name>.app, its own bundle id, its own data folder
+// (~/Library/Application Support/<name>) and port, and it opens on the first app's new-session page.
+// The branding is Contents/Resources/brand.json, which src/main.ts reads.
 //
 //   Contents/MacOS/odapt        src/main.ts compiled: server, runner, `snap`, and bun (BUN_BE_BUN=1)
 //   Contents/Resources/
@@ -24,7 +29,11 @@ const fail = (m: string): never => { console.error(m); process.exit(1); };
 if (process.platform !== "darwin") fail("build-mac builds on a Mac (it ships this machine's platform binaries)");
 
 const apps = arg("--apps", "app-ad").split(",").map((id) => loadTemplate(id) ?? fail(`no template "${id}"`));
-const app = join(ROOT, arg("--out", "dist/mac"), "Odapt.app");
+const name = arg("--name", "Odapt");
+const brand = name === "Odapt" ? null : { name, port: Number(arg("--port", "7792")), open: `#/new/${apps[0].id}` };
+if (!/^[A-Za-z0-9 ]+$/.test(name)) fail(`--name "${name}": letters, digits and spaces only`);
+const bundleId = brand ? `ai.odapt.${name.toLowerCase().replace(/ /g, "-")}` : "ai.odapt.app";
+const app = join(ROOT, arg("--out", "dist/mac"), `${name}.app`);
 const res = join(app, "Contents/Resources");
 const version = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version as string;
 
@@ -41,7 +50,9 @@ console.log("compiling src/main.ts");
 await sh(["bun", "build", "--compile", "src/main.ts", "--outfile", join(app, "Contents/MacOS/odapt")]);
 
 for (const p of ["ui", "prompts", "tools", "harnesses.json"]) cpSync(join(ROOT, p), join(res, p), { recursive: true });
-for (const t of apps) cpSync(t.dir, join(res, "templates", t.id), { recursive: true, filter: (src) => !src.startsWith(join(t.dir, "landing")) });
+if (brand) writeFileSync(join(res, "brand.json"), JSON.stringify(brand, null, 2) + "\n");
+// realpath: a private template (scripts/private-apps.sh) is a symlink into ops/, and the app needs the files.
+for (const t of apps) { const dir = realpathSync(t.dir); cpSync(dir, join(res, "templates", t.id), { recursive: true, filter: (src) => !src.startsWith(join(dir, "landing")) }); }
 
 // Packages the templates import by name, at the versions the repo pins: a node_modules of just those.
 const deps: Record<string, string> = {};
@@ -83,8 +94,8 @@ writeFileSync(join(app, "Contents/Info.plist"), `<?xml version="1.0" encoding="U
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Odapt</string>
-  <key>CFBundleIdentifier</key><string>ai.odapt.app</string>
+  <key>CFBundleName</key><string>${name}</string>
+  <key>CFBundleIdentifier</key><string>${bundleId}</string>
   <key>CFBundleExecutable</key><string>odapt</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${version}</string>

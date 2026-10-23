@@ -126,7 +126,8 @@ the env below (`--env-file control.env`) behind something that terminates HTTPS.
 | `GET /me` · `POST /billing/checkout {app, pack}` | with a Bearer token: email and balance · a credit pack's Checkout URL (JSON when asked for; Stripe returns to `/billing/done`) |
 
 An app is billable once `templates/<id>/pricing.json` exists: `markup`, `grant_usd` (free credit on
-first sign-in), `packs`. The wallet is one per user, shared across apps; the ledger
+first sign-in), `packs`, and optionally `openrouter_provider` (OpenRouter routing forced on every call
+the app makes, e.g. `{"zdr": true}` to keep its data on providers that retain none). The wallet is one per user, shared across apps; the ledger
 (`credit_ledger`) is append-only, and `ref` makes webhooks, grants and charges idempotent.
 `CONTROL_DAILY_CAP_USD` (default 20) caps raw provider spend per UTC day across all users.
 
@@ -200,6 +201,9 @@ To make one, follow **`docs/new-app.md`** (the checklist, with what went wrong l
 **Private apps.** An app whose code you don't want in this repo lives in `ops/apps/<id>/` (a separate,
 private repo cloned at `./ops`, which this repo ignores). `bash scripts/private-apps.sh` links each one
 into `apps/` for local work; the deploy runs it with `copy`. The platform can't tell the difference.
+An agent template made for one customer works the same way: `ops/templates/<id>/` is linked into
+`templates/`. A push to `ops` doesn't deploy, so after changing a private `pricing.json` run
+`gh workflow run deploy.yml`.
 
 An app that doesn't need an agent or the wallet (a fixed price for a fixed job) lives in `apps/<id>/`
 with its own server and an `app.json`. The platform holds everything with a key in it; the app holds
@@ -272,6 +276,8 @@ JSON. Add a renderer in `RENDERERS` in `ui/index.html`. `snap help` is the full 
 ## Mac app (`bun run build-mac`)
 
 `scripts/build-mac.ts` builds an unsigned `dist/mac/Odapt.app` (`--apps app-ad,…`, default app-ad).
+`--name "My App" [--port N]` builds `My App.app` for one app instead: its own bundle id, data folder and
+port (so it runs beside Odapt.app), opening on that app's new-session page (`brand.json` in Resources).
 `src/main.ts` compiled with `bun build --compile` is the whole runtime: `odapt` starts the server
 and opens it in the browser, `odapt runner <id>` and `odapt cli …` (`snap`) are what the server and
 sessions start, and with `BUN_BE_BUN=1` the same binary is bun for template scripts and bun-built
